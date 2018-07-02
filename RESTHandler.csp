@@ -1,0 +1,480 @@
+Class HIE.Web.GridServer.RESTHandler Extends HIE.Web.GridServer.GridREST
+{
+
+Parameter HandleCorsRequest = 1;
+
+// Parameter UseSession = 1;
+
+XData UrlMap [ XMLNamespace = "http://www.intersystems.com/urlmap" ]
+{
+<Routes>
+
+<Route Url="/routes/:inData" Method="GET" Call="GetRoutes" Cors="true"/>
+<Route Url="/test" Method="GET" Call="Get" Cors="true"/>
+<Route Url="/search/:inData" Method="GET" Call="GetSearchResult" Cors="true"/>
+<Route Url="/destinationsearch/:inData" Method="GET" Call="DDDestinationSearch" Cors="true"/>
+<Route Url="/destinationroute/:inData" Method="GET" Call="DDDestinationRoute" Cors="true"/>
+
+<Route Url="/source/:inData" Method="GET" Call="DDSource" Cors="true"/>
+<Route Url="/providersnames/:inData" Method="GET" Call="DDProvider" Cors="true"/>
+<Route Url="/emr/:inData" Method="GET" Call="DDEMR" Cors="true"/>
+
+<Route Url="/detail/:inData" Method="GET" Call="GetDetail" Cors="true"/>
+<Route Url="/pdfhl7/:inData" Method="GET" Call="GetPDFHL7" Cors="true"/>
+
+<Route Url="/providers/:inData" Method="GET" Call="GetProviders" Cors="true"/>
+
+</Routes>
+}
+
+// Test method for checking REST availability. Doesn't require a token
+
+ClassMethod Get() As %Status
+{
+	write "success!"
+	return $$$OK
+}
+
+// Gives HL7 using the rawcontentget for full, longer messages
+
+ClassMethod GetPDFHL7(inData As %String) As %Status
+{
+	try {
+		set data = {}.%FromJSON(inData)
+		set sessionid = data.payload.sessionid
+		set routeid = data.payload.routeid
+		
+		set details = {}
+
+		// SQL definitions -DeliveredMessageBodyID
+        set tSelect = "select *, %vid from (select DeliveredMessageBodyID "
+        set tFrom = "FROM SQLUser.vwAdminMessageDetailDelivery "
+        set tWhere = "WHERE sessionid = '"_sessionid_"' and routeid = '"_routeid_"') v where %vid between 1 and 1"
+        // Store query for logging
+		set deliveryquery = tSelect_" "_tFrom_" "_tWhere
+		set Delivery = ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+		
+		set tSelect = "select *, %vid from (select Original_Source, CommonMessageBodyID, OriginalMessageBodyID"
+        set tFrom = "FROM SQLUser.vwAdminMessageDetailPreDelivery "
+        set tWhere = "WHERE sessionid = '"_sessionid_"') v where %vid between 1 and 1"
+        // Store query for logging
+        set predeliveryquery = tSelect_" "_tFrom_" "_tWhere
+		set PreDelivery = ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+		
+		// Audit detail formation		
+		// Define the object that will hold our json event details
+		set eventDetails = {}
+		set eventDetails.resulttype = data.payload.resulttype
+		set eventDetails.deliveryquery = deliveryquery
+		set eventDetails.predeliveryquery = predeliveryquery
+		
+		do ##class(HIE.Web.GridServer.Helpers).AuditEvent("GetDetail",eventDetails.%ToJSON(),"User viewed a PDF from a specific message, invoking SQL queries defined in Event Data")
+		
+		// Continue forming data for user
+		try {
+			// Extracts the hl7 so that it isn't truncated
+			set mutation = {}.%FromJSON(PreDelivery)
+			set Common = ##class(EnsLib.HL7.Message).%OpenId(mutation.tRow.CommonMessageBodyID).RawContentGet()
+			set mutation.tRow."Common_HL7" = Common
+			set Original = ##class(EnsLib.HL7.Message).%OpenId(mutation.tRow.OriginalMessageBodyID).RawContentGet()
+			set mutation.tRow."Original_HL7" = Original
+			
+			set PreDelivery = mutation.%ToJSON()
+			set details.PreDelivery = PreDelivery
+		}
+		catch(e) {
+			//write "predelivery error"
+		}
+		try {
+			set mutation = {}.%FromJSON(Delivery)
+			set Delivered = ##class(EnsLib.HL7.Message).%OpenId(mutation.tRow.DeliveredMessageBodyID).RawContentGet()
+			set mutation.tRow."Delivered_HL7" = Delivered
+			
+			set Delivery = mutation.%ToJSON()
+			set details.Delivery = Delivery
+		}
+		catch(e) {
+			//write "delivery error"
+		}
+		write details.%ToJSON()
+	}
+	catch ex {
+		write ex.Name
+	}
+	return $$$OK
+}
+
+// Drop down query to get destinations applicable to user
+
+ClassMethod DDDestinationRoute(inData As %String) As %Status
+{
+	try {
+		set data = {}.%FromJSON(inData)
+		set user = $username
+		set source = ""
+		if data.source '= "" {
+			set source = " and sourceorganization = '"_data.source_"' "
+		}
+		
+		// SQL definitions
+        set tSelect = "SELECT Distinct OrganizationName"
+        set tFrom = "FROM SQLUser.vwAdminRoutesProviders"
+        set tWhere = "where username = '"_user_"'"_source_
+        "ORDER BY OrganizationName Asc"
+        //write tSelect_" "_tFrom_" "_tWhere
+        write ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+	}
+	catch ex {
+		write ex.Name
+	}
+	return $$$OK
+}
+
+// Drop down query to get destinations applicable to user
+
+ClassMethod DDDestinationSearch(inData As %String) As %Status
+{
+	try {
+		set data = {}.%FromJSON(inData)
+		set user = $username
+		set source = ""
+		if data.source '= "" {
+			set source = " and sourceorganization = '"_data.source_"' "
+		}
+		
+		// SQL definitions
+        set tSelect = "SELECT Distinct OrganizationName"
+        set tFrom = "FROM SQLUser.vwAdminRoutesProviders"
+        set tWhere = "where username = '"_user_"' and active=1 "_source_
+        "ORDER BY OrganizationName Asc"
+        //write tSelect_" "_tFrom_" "_tWhere
+        write ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+	}
+	catch ex {
+		write ex.Name
+	}
+	return $$$OK
+}
+
+// Drop down query to get providers
+
+ClassMethod DDProvider(inData As %String) As %Status
+{
+	try {
+		set data = {}.%FromJSON(inData)
+		set destination = data.destination
+		set source = data.source
+		set tDest = ""
+		if destination '= "" {
+			set tDest = "Destination = '"_destination_"' and"
+		}
+
+		// SQL definitions
+		set tSelect = "SELECT LastName, FirstName, ProvNPI"
+		set tFrom = "FROM SQLUser.vwAdminProviderPicklist"
+		set tWhere = "where "_tDest_" Source = '"_source_"' order by LastName Asc"
+        write ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+	}
+	catch ex {
+		write ex.Name
+	}
+	return $$$OK
+}
+
+// Drop down query to get sources applicable to user
+
+ClassMethod DDSource(inData As %String) As %Status
+{
+	try {
+		set data = {}.%FromJSON(inData)
+		set user = $username
+		// SQL definitions
+        set tStatement=##class(%SQL.Statement).%New()
+        set tQuery=4
+        set tSelect = "select Distinct sourceorganization"
+        set tFrom = "from SQLUser.vwAdminRoutesProviders"
+        set tWhere = "where username = '"_user_"' "_
+        "order by sourceorganization Asc"
+		write ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+	}
+	catch ex {
+		write ex.Name
+	}
+	return $$$OK
+}
+
+// Drop down query to get EMR filter choices
+
+ClassMethod DDEMR(inData As %String) As %Status
+{
+	try {
+		set data = {}.%FromJSON(inData)
+		set user = $username
+		// SQL definitions
+        set tSelect = "SELECT Distinct EMR"
+        set tFrom = "FROM SQLUser.vwAdminRoutesProviders"
+        set tWhere = "where EMR is not null and username = '"_user_"' "_
+        "ORDER BY EMR Asc"
+        write ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+	}
+	catch ex {
+		write ex.Name
+	}
+	return $$$OK
+}
+
+// Gets details from a specific search result as json
+
+ClassMethod GetDetail(inData As %String) As %Status
+{
+	try {
+		set data = {}.%FromJSON(inData)
+		set sessionid = data.payload.sessionid
+		set routeid = data.payload.routeid
+		
+		set details = {}
+
+		// SQL definitions -DeliveredMessageBodyID
+        set tSelect = "select *, %vid from (select SessionID, RouteID, Delivered_Config, Delivery_Status, DeliveryQueued, DeliveredMessageBodyID, ConnectionEnabled, ConnectionType, Port, IPAddress, ACKReceived, ACK "
+        set tFrom = "FROM SQLUser.vwAdminMessageDetailDelivery "
+        set tWhere = "WHERE sessionid = '"_sessionid_"' and routeid = '"_routeid_"') v where %vid between 1 and 1"
+        // Store query for logging
+		set deliveryquery = tSelect_" "_tFrom_" "_tWhere
+		set Delivery = ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+		
+		set tSelect = "select *, %vid from (select Original_Source, CommonMessageBodyID, OriginalMessageBodyID, Original_Status, Original_TimeProcessed, Common_Router, Common_Status, Common_TimeProcessed "
+        set tFrom = "FROM SQLUser.vwAdminMessageDetailPreDelivery "
+        set tWhere = "WHERE sessionid = '"_sessionid_"') v where %vid between 1 and 1"
+        // Store query for logging
+        set predeliveryquery = tSelect_" "_tFrom_" "_tWhere
+		set PreDelivery = ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+		
+		// Audit detail formation		
+		// Define the object that will hold our json event details
+		set eventDetails = {}
+		set eventDetails.sessionid = data.payload.sessionid
+		set eventDetails.routeid = data.payload.routeid
+		set eventDetails.firstname = data.payload.firstname
+		set eventDetails.lastname = data.payload.lastname
+		set eventDetails.mrn = data.payload.mrn
+		set eventDetails.source = data.payload.source
+		set eventDetails.dob = data.payload.dob
+		set eventDetails.resulttype = data.payload.resulttype
+		set eventDetails.deliveryquery = deliveryquery
+		set eventDetails.predeliveryquery = predeliveryquery
+		
+		do ##class(HIE.Web.GridServer.Helpers).AuditEvent("GetDetail",eventDetails.%ToJSON(),"User viewed data from a specific message, invoking SQL queries defined in Event Data")
+		
+		// Continue forming data for user
+		try {
+			// Extracts the hl7 so that it isn't truncated
+			set mutation = {}.%FromJSON(PreDelivery)
+			set Common = ##class(EnsLib.HL7.Message).%OpenId(mutation.tRow.CommonMessageBodyID).RawContentGet()
+			set mutation.tRow."Common_HL7" = Common
+			set Original = ##class(EnsLib.HL7.Message).%OpenId(mutation.tRow.OriginalMessageBodyID).RawContentGet()
+			set mutation.tRow."Original_HL7" = Original
+			
+			set PreDelivery = mutation.%ToJSON()
+			set details.PreDelivery = PreDelivery
+		}
+		catch(e) {
+			//write "predelivery error"
+		}
+		try {
+			set mutation = {}.%FromJSON(Delivery)
+			set Delivered = ##class(EnsLib.HL7.Message).%OpenId(mutation.tRow.DeliveredMessageBodyID).RawContentGet()
+			set mutation.tRow."Delivered_HL7" = Delivered
+			
+			set Delivery = mutation.%ToJSON()
+			set details.Delivery = Delivery
+		}
+		catch(e) {
+			//write "delivery error"
+		}
+		write details.%ToJSON()
+	}
+	catch ex {
+		write ex.Name
+	}
+	return $$$OK
+}
+
+ClassMethod GetProviders(inData As %String) As %Status
+{
+	try {
+		set data = {}.%FromJSON(inData)
+		set user = $username
+		set destination = data.payload.destination
+		set destination = $REPLACE(destination,"'","''")
+		
+		// SQL definitions
+        set tSelect = "SELECT OrganizationName, Type, EMR, Contact, Phone, Email, NPI, LastName, FirstName "
+        set tFrom = "FROM SQLUser.vwAdminOrgInfo "
+        set tWhere = "WHERE username = '"_user_"' and OrganizationName = '"_destination_"'"
+		//write tSelect_tFrom_tWhere
+		write ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+	}
+	catch ex {
+		write ex.Name
+	}
+	return $$$OK
+}
+
+// Method for handling form data query building
+
+ClassMethod Foreach(pInData) As %String
+{
+	try {
+		// Instantiate the query string, it may be empty by design
+		set tFilterParam = ""
+		// We get the key value pairs from our dynamic object
+		set tIter = pInData.%GetIterator()
+		// Init date beginning
+		set tFrom = ""
+		// Init ResultType tracker
+		set tFoundResult = 0
+		// Loop through these values and add to our query depending on their contents
+		while tIter.%GetNext(.key, .value) {
+			if value '= "" {
+				// If this is the first occurance of a result type
+				if tFoundResult = 0 {
+					if key = "ResultType" {
+						// set trigger because we've hit the first result type
+						set tFoundResult = 1
+						// Try to treat it as a dynamic object
+						try {
+							set tSubIter = value.%GetIterator()
+						}
+						// If it fails, then it's a single value and we make the string
+						catch(e) {
+							set tFilterParam = tFilterParam_" and "_key_"='"_value_"'"
+							// Skip the rest of the logic because we're done with this record
+							continue
+						}
+						// Init element tracking
+						set counter = 0
+						// Init size of dynamic object
+						set size = 0
+						// Loop to get the size of dynamic object
+						while tSubIter.%GetNext() {
+							set size = size + 1
+						}
+						// Get new iterator so that we can loop through object again
+						set tSubIter = value.%GetIterator()
+						while tSubIter.%GetNext(.subkey, .subvalue) {
+							if subkey '= "" {
+								// If this is the first field in the object
+								if counter = 0 {
+									set tFilterParam = tFilterParam_" and ("_key_"='"_subvalue_"'"
+								}
+								// Otherwise we make 'or' logic in the string for subsquent fields
+								else {
+									//write "last "_subvalue ,!
+									set tFilterParam = tFilterParam_" or "_key_"='"_subvalue_"'"
+								}
+								// Increment counter so that we know future fields aren't the first occurance
+								set counter = counter + 1
+							}
+						}
+						// Close 'or' logic
+						set tFilterParam = tFilterParam_")" 	
+					}
+				}
+				// Removes single quotes from user input so that the query isn't messed up
+				set value = $REPLACE(value,"'","''")
+				// Date handling section
+				if key = "ProcessedDateTimeFrom" {
+					// set higher level var to the from date
+					set tFrom = value
+					continue
+				}
+				if key = "ProcessedDateTimeTo" {
+					// Combine from and to for a full sql string
+					set tFilterParam = tFilterParam_" and ProcessedDateTime BETWEEN '"_tFrom_"' and '"_value_"'"
+					continue
+				}
+				if key = "DeliveredResults" {
+					if value = "Delivered" {
+						set tFilterParam = tFilterParam_" and RouteID IS NOT NULL"
+					}
+					else {
+						set tFilterParam = tFilterParam_" and RouteID IS NULL"
+					}
+					continue
+				}
+				// Handler to skip adding ghost DynamicArray object to string building
+				if key = "ResultType" {
+					continue
+				}
+				// If the key isn't special, just use its key name and value to make a sql string
+				set tFilterParam = tFilterParam_" and upper("_key_")=upper('"_value_"')"
+			}
+		}
+	}
+	catch(e) {
+		write e.Name	
+	}
+	// Pass the full sql clauses
+	return tFilterParam
+}
+
+// Builds search params from user and gets result as json
+
+ClassMethod GetSearchResult(inData As %String) As %Status
+{
+	try {
+		set data = {}.%FromJSON(inData)
+		set user = $username
+		// SQL definitions
+		set tStatement = ##class(%SQL.Statement).%New()
+		set myquery = 4
+		set tSelect = "select top 1000 ProcessedDateTime, SourceOID, Destination, ResultType, RouteID, MessageControlID, MessageDateTime," _
+		"PatientLastName, ProvFirstName, ProvLastName, ProviderID, ProviderRole, PatientFirstName, PatientDOB, MRN, AccessionID, ResultStatus," _
+		"PatientClass, OBRLOINCDescription, OBRUniversalServiceID, DocumentType, SessionID," _  
+		"DelayEntry, DestinationStatus, Report"
+		set tFrom = "from sqluser.vwAdminProviderLog"
+		// This where clause is created by our custom foreach function. It iterates over our form object and builds the correct syntax
+		set tWhere = "where username = '"_user_"' " _ ..Foreach(data.payload) _ " ORDER BY ProcessedDateTime DESC"
+
+		// Return json result of query
+		set query = tSelect_" "_tFrom_" "_tWhere
+		//write tSelect_" "_tFrom_" "_tWhere
+		
+		set result = ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+		do ##class(HIE.Web.GridServer.Helpers).AuditEvent("GetSearchResult",query,"User searched for messages, invoking SQL queries and viewing special information defined in Event Data")
+		write result
+	}
+	catch ex {
+		write ex.Name
+	}
+	return $$$OK
+}
+
+// Returns all the route data from a query as json to the client
+
+ClassMethod GetRoutes(inData As %String) As %Status
+{
+	try {
+		set data = {}.%FromJSON(inData)
+		set user = $username
+		// SQL definitions
+		set tSelect = "select Active, Aggregate, CreateTS, Delay, EMR, InterestedProvider,MSH3,MSH4,MSH5,MSH6,OrganizationID,PV13Location,"_
+		"PatientClass,PreserveProviders,ProviderRole,ResultStatus,ResultType,SendTo,SourceOID,Transformations,OrganizationName,"_
+		"Username,sourceorganization"
+		set tFrom = "from sqluser.vwAdminRoutesProviders"
+		set tWhere = "where username = '"_user_"'"
+		set query = tSelect_" "_tFrom_" "_tWhere
+		
+		// Return our json object result from the query 
+		set result = ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+		
+		do ##class(HIE.Web.GridServer.Helpers).AuditEvent("GetRoutes",query, "User searched for routes, invoking an SQL query defined in Event Data")
+		
+		write result
+	}
+	catch ex {
+		write ex.Name
+	}
+	return $$$OK
+}
+}

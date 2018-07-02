@@ -1,0 +1,1298 @@
+<div class="contents" id="containerSearch">
+	<div id="errorBox">
+		<h2>No Details</h2>
+	</div>
+	<div id="thinkingBox"></div>
+	<div class="main-column ui-layout-west" id="searchColumn">
+		<form action="#" method="post">
+			<div class="search messageParam" id="sourceParam">
+				<Label>Source</Label><br>
+				<select id="ddsource" name="SourceOID"></select><br>
+				<Label>Destination</Label><br>
+				<select id="dddestination" name="Destination"></select><br>
+				
+				<Label>Result Type (Ctr + click)</Label><br>
+				<select name="ResultType" multiple size='7'>
+					<option value="">Any</option>
+					<option value="LAB">LAB</option>
+					<option value="LAB-MB">LAB-MB</option>
+					<option value="LAB-BB">LAB-BB</option>
+					<option value="LAB-PATH">LAB-PATH</option>
+					<option value="RAD">RAD</option>
+					<option value="TRANS">TRANS</option>
+				</select><br>
+				<Label>Delivery Status</Label><br>
+				<select name="DeliveredResults">
+					<option value="Delivered">Delivered</option>
+					<option value="Not Delivered">Not Delivered</option>
+					<option value="">Any</option>
+				</select><br>
+			</div>
+			<div class="messageParam" id="messageParamLeft">
+				<Label>Processed Date</Label><br>
+				<input type="text" id="from" name="ProcessedDateTimeFrom" placeholder="From"><br>
+				<input type="text" id="to" name="ProcessedDateTimeTo" placeholder="To"><br>
+			</div>
+			<div class="messageParam" id="targetParam">
+				<Label>Provider</Label><br>
+				<select id="ddprovider" name="prov"></select><br>
+				<div class="hiddenLogic">
+					<input type="text" name="ProvFirstName" placeholder="Provider First Name"><br>
+					<input type="text" name="ProvLastName" placeholder="Provider Last Name"><br>
+					<input type="text" name="ProviderID" placeholder="Provider NPI"><br>
+				</div>
+			</div>
+			<div class="messageParam collapse" id="messageParamMiddle">
+				<input type="text" name="mrn" placeholder="MRN"><br>
+				<input type="text" name="Patientfirstname" placeholder="Patient First Name"><br>
+				<input type="text" name="Patientlastname" placeholder="Patient Last Name"><br>
+			</div>
+			<div class="messageParam collapse" id="messageParamMiddle">
+				<input type="text" name="accessionID" placeholder="Accession ID"><br>
+				<input type="text" name="MessageControlID" placeholder="Message Control ID"><br>
+				<input type="text" name="RouteID" placeholder="Route ID"><br>
+			</div>
+			
+			<div class="messageParam collapse" id="messageParamMiddle">
+				<input type="text" name="resultStatus" placeholder="Result Status"><br>
+				<input type="text" name="patientClass" placeholder="Patient Class"><br><br>
+				<button type="button" id="clearBtn" class="button-primary button-red">Clear Form</button>
+				<button type="button" id="cancelBtn" class="button-primary button-red">Cancel Search</button>
+				<label>Disable Detail Event</label><br>
+				<label class="switch">
+					<input id="detailEvent" type="checkbox">
+					<span class="sliderCheckbox"></span>
+				</label>
+			</div>
+			<div class="messageParam" id="controls">
+				<button type="button" id="hideDetailsBtn" class="settings button-primary">Advanced</button>
+				<button type="submit" id="search" class="button-primary">Search</button>
+			</div>
+		</form>
+	</div>
+	<div class="main-column ui-layout-center" id="tableColumn">
+		<div id="resize_wrapper_search"> 
+			<table id="searchTable" class="display compact wrap" cellspacing="0" width="100%">
+			    <thead>
+			        <tr>
+			        	<th>Details</th>
+			        	<th>Patient Name</th>		        	
+			        	<th>Patient DOB</th>
+			        	<th>Result Type</th>
+			        	<th>Report</th>
+			        	<th>Status</th>
+			        	<th>Class</th>
+			        	<th>Provider</th>
+			        	<th>Processed DateTime</th>
+			        	<th>Destination</th>
+			        	<th>Source</th>
+
+				        <th class="detail">Patient<br>First<br>Name</th>
+				        <th class="detail">Route ID</th>
+				        <th class="detail">Message Control ID</th>
+			        	<th class="detail">Message DateTime</th>
+				        <th class="detail">MRN</th>
+				        <th class="detail">Accession ID</th>
+				        <th class="detail">OBRLOINC Description</th>
+				        <th class="detail">OBR Universal Service ID</th>
+				        <th class="detail">Document Type</th>
+				        <th class="detail">Session ID</th>
+				        <th class="detail">Delay Entry</th>
+				        <th class="detail">Destination Status</th>
+			        </tr>
+			    </thead>
+			    <tbody>
+			        <tr>
+			        	<td></td>
+			        	<td></td>
+			            <td></td>
+			            <td></td>
+			            <td></td>
+			            <td></td>
+			            <td></td>
+						<td></td>
+			            <td></td>
+			            <td></td>
+			            <td></td>
+			            <td></td>
+						<td></td>
+			            <td></td>
+			            <td></td>
+			            <td></td>
+			            <td></td>
+			            <td></td>
+			            <td></td>
+			            <td></td>
+			            <td></td>
+			            <td></td>
+			            <td></td>
+			        </tr>
+			    </tbody>
+			    <tfoot>
+		            <tr>
+		            	<th id="detailInvisible">Details</th>
+			        	<th>Patient Name</th>		        	
+			        	<th>Patient DOB</th>
+			        	<th>Result Type</th>
+			        	<th>Report</th>
+			        	<th>Result Status</th>
+			        	<th>Patient Class</th>
+			        	<th>Provider</th>
+			        	<th>Processed DateTime</th>
+			        	<th>Destination</th>
+			        	<th>Source</th>
+				        
+				        <th>Route ID</th>
+				        <th>Message Control ID</th>
+			        	<th>Message DateTime</th>
+				        <th>MRN</th>
+				        <th>Accession ID</th>
+				        <th>OBRLOINC Description</th>
+				        <th>OBR Universal Service ID</th>
+				        <th>Document Type</th>
+				        <th>Session ID</th>
+				        <th>Delay Entry</th>
+				        <th>Destination Status</th>
+		            </tr>
+	        	</tfoot>
+			</table>
+		</div>
+	</div>
+	<div class="main-column" id="detailColumn">
+		<div id="detailsContents">
+			<button id="closeDetail" class="button-primary">Close</button>
+			<br>
+			<h2 id="messageDetailsHeader"></h2>
+			<table id="detailTable" style="width:100%">
+			  <tr id="conDetailsBlock">
+				<th>
+					<!--<label class="switch">
+					<input id="ConToggle" type="checkbox">
+					<span class="sliderCheckbox"></span>
+				</label><br>-->
+				<label>Connection Details</label>
+				</th>
+				<td>
+					<table id="conDetails">
+					  <tr>
+					    <th>Delivery Information:</th>
+					    <td id="DeliveryStatus"></td>
+					  </tr>
+			  		  <tr>
+					    <th>Session ID:</th>
+					    <td id="SessionID"></td>
+					  </tr>
+					  <tr>
+					    <th>Connection Enabled:</th>
+					    <td id="ConnectionEnabled"></td>
+					  </tr>
+					  <tr>
+					    <th>Connection Type:</th>
+					    <td id="ConnectionType"></td>
+					  </tr>
+					  <tr>
+					    <th>Port:</th>
+					    <td id="Port"></td>
+					  </tr>
+					  <tr>
+					    <th>IP Address:</th>
+					    <td id="IPAddress"></td>
+					  </tr>
+					  <tr>
+					    <th>ACK Received:</th>
+					    <td id="ACKReceived"></td>
+					  </tr>
+					  <tr>
+					    <th>ACK:</th>
+					    <td id="ACK"></td>
+					  </tr>
+					  <tr>
+					    <th>Source:</th>
+					    <td id="Source"></td>
+					  </tr>
+					  <tr>
+					    <th>Received:</th>
+					    <td id="Received"></td>
+					  </tr>
+					  <tr>
+					    <th>Processed:</th>
+					    <td id="Processed"></td>
+					  </tr>
+					  <tr>
+					    <th>Queued for Delivery:</th>
+					    <td id="QueuedforDelivery"></td>
+					  </tr>
+			    	</table>
+			    </td>
+			  </tr>
+			  <tr id="originalBlock">
+			    <th><label>Original HL7:</label><br>
+			    <label class="switch">
+				  <input id="originalToggle" type="checkbox">
+				  <span class="sliderCheckbox"></span>
+				</label><br>
+				<label>Raw/Pretty Toggle</label>
+				<button id='Originalviewpdfbtn'>View PDF</button>
+			    </th>
+			    	<td>
+		    			<div class="wrapword" id="OriginalHL7">
+			    			<table class="hl7ParseTable" id="OriginalHL7Table"></table>
+			    		</div>
+			    		<div class="wrapword" id="originalRaw">
+		    				<div class="selectable" id="OriginalHL7Result"></div>
+		    			</div>
+			    	</td>
+			  </tr>
+			  <tr id="commonBlock">
+			    <th><label>GLHC Common HL7:</label><br>
+			    <label class="switch">
+				  <input id="GLHCCommonToggle" type="checkbox">
+				  <span class="sliderCheckbox"></span>
+				</label><br>
+				<label>Raw/Pretty Toggle</label>
+				<button id='Commonviewpdfbtn'>View PDF</button>
+				</th>
+			    <td>
+			    	<div class="wrapword" id="GLHCCommonHL7">
+			    		<table class="hl7ParseTable" id="GLHCCommonHL7Table"></table>
+			    	</div>
+			    	<div class="wrapword" id="commonRaw">
+			    		<div class="selectable" id="GLHCCommonHL7Result"></div>
+			    	</div>
+			    </td>
+			  </tr>
+			  <tr id="deliveredBlock">
+			    <th><label>Delivered HL7:</label><br>
+			    <label class="switch">
+				  <input id="DeliveredToggle" type="checkbox">
+				  <span class="sliderCheckbox"></span>
+				</label><br>
+				<label>Raw/Pretty Toggle</label>
+				<button id='Deliveredviewpdfbtn'>View PDF</button>
+				</th>
+			    <td>
+				    <div class="wrapword " id="DeliveredHL7">
+				    	<table class="hl7ParseTable" id="DeliveredHL7Table"></table>
+				    </div>
+				    <div class="wrapword" id="deliveredRaw">
+				    	<div class="selectable" id="DeliveredHL7Result"></div>
+				    </div>
+			    </td>
+			  </tr>
+			  <tr id="differenceBlock">
+			    <th><label>Difference:</label><br>
+			    <button id='viewDifferenceBtn'>View Difference</button>
+			    </th>
+			    <td>
+			    	<div class="wrapword" >
+			    		<div id="difference"></div>
+			    	</div>
+			    </td>
+			  </tr>
+			</table>
+		</div>
+	</div>
+</div>
+<script>
+	// Init the table every page load in order to refresh the data
+	var table, columns, a, b, result, ajaxDetail;
+	var footers = [];
+	var detailEvent = true;
+	var area_height;
+	// Handling of hidden data that is triggered on each row by user
+	function format ( d ) {
+	    // `d` is the original data object for the row
+	    return '<div class="slider">' +
+	    '<table cellpadding="5" cellspacing="0" border="0" style="float:left;padding-left:5px;">'+
+			'<tr>'+
+				'<td>Class:</td>'+
+				'<td>'+d.PatientClass+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>Route ID:</td>'+
+				'<td>'+d.RouteID+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>Message Control ID:</td>'+
+				'<td>'+d.MessageControlID+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>MRN:</td>'+
+				'<td>'+d.MRN+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>Accession ID:</td>'+
+				'<td>'+d.AccessionID+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>OBRLOINC Description:</td>'+
+				'<td>'+d.OBRLOINCDescription+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>OBR Universal Service ID:</td>'+
+				'<td>'+d.OBRUniversalServiceID+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>Document Type:</td>'+
+				'<td>'+d.DocumentType+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>Session ID:</td>'+
+				'<td>'+d.SessionId+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>Delay Entry:</td>'+
+				'<td>'+d.DelayEntry+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>Destination Status:</td>'+
+				'<td>'+d.DestinationStatus+'</td>'+
+			'</tr>'+
+	    '</table>' +
+	    '</div>';
+	}
+	
+	(function ($) {
+		$('#clearBtn').click(function() {
+			$('form').trigger("reset");
+		});
+		$('#cancelBtn').click(function(e) {
+			e.preventDefault();
+		    e.stopPropagation();
+			try {
+				//$.xhrPool.abortAll();
+				//table.settings()[0].jqXHR.abort()
+				//table.destroy();
+				$('#resize_wrapper_search').hide()
+				table, columns, a, b, result = "";
+			}
+			catch(e) {}
+			//navigate('search.html')
+		});
+		$('#hideDetailsBtn').click(function() {
+			if ( $('.collapse').css('display') == 'none' ){
+				$('.collapse').show();
+			}
+			else $('.collapse').hide();
+		});
+		$('#showSearch').click(function() {
+			if ( $('tfoot').css('display') == 'none' ){
+				$('tfoot').show();
+			}
+			else $('tfoot').hide();
+		});
+		
+		$('#Originalviewpdfbtn').click(function() {
+			easyPDF($('#OriginalHL7Result').html(), "PDF from HL7")
+		});
+
+		$('#Deliveredviewpdfbtn').click(function() {
+			easyPDF($('#DeliveredHL7Result').html(), "PDF from HL7")
+		});
+
+		$('#Commonviewpdfbtn').click(function() {
+			easyPDF($('#GLHCCommonHL7Result').html(), "PDF from HL7")
+		});
+
+		$('#closeDetail').click(function() {
+			$('#detailColumn').popup('hide');
+			$('tr td').removeClass('selected_row')
+		});
+		
+		$('#detailEvent').on('click', function (e) {
+			detailEvent = !detailEvent
+		});
+		
+		// Difference toggle
+		$('#detailTable').on('click', '#viewDifferenceBtn', function (e) {
+   			$('#difference').append(changed())
+		});
+		// Pretty/Raw toggles
+		$('#detailTable').on('click', '#originalToggle', function (e) {
+			$('#originalRaw, #OriginalHL7').toggle()
+		});
+		$('#detailTable').on('click', '#GLHCCommonToggle', function (e) {
+			$('#commonRaw, #GLHCCommonHL7').toggle()
+		});
+		$('#detailTable').on('click', '#DeliveredToggle', function (e) {
+			$('#deliveredRaw, #DeliveredHL7').toggle()
+		});
+		// Event handler for header clicking to reveal pretty hl7 details
+		$('#OriginalHL7').on('click', '.hl7ParseTable tr.header', function (e) {
+			$(this).nextUntil('tr.header').css('display', function(i,v) {
+			    return this.style.display === 'none' ? 'table-row' : 'none';
+			});
+		});
+		$('#GLHCCommonHL7').on('click', 'tr.header', function (e) {
+			$(this).nextUntil('tr.header').css('display', function(i,v) {
+			    return this.style.display === 'none' ? 'table-row' : 'none';
+			});
+		});
+		$('#DeliveredHL7').on('click', 'tr.header', function (e) {
+			$(this).nextUntil('tr.header').css('display', function(i,v) {
+			    return this.style.display === 'none' ? 'table-row' : 'none';
+			});
+		});
+		// Details popup init
+		$('#detailColumn').popup({
+			backgroundactive: true,
+		});
+	
+		$("#ddsource").change(function () {
+	        getDestinations($(this).val())
+	    });
+		
+		$("#dddestination").change(function () {
+	        getProviders($("#ddsource").val(),$(this).val())
+	    });
+		
+		$('.collapse').hide();
+		
+		// Init difference refs
+		a = document.getElementById('GLHCCommonHL7Result');
+		b = document.getElementById('DeliveredHL7Result');
+		result = document.getElementById('difference');
+
+		a.onpaste = a.onchange =
+		b.onpaste = b.onchange = changed;
+
+		// Drop down init
+		var data = {}
+
+		data.source = $('#ddsource').val();
+		data = JSON.stringify(data);
+		
+		function getDestinations(source) {
+			var data = {}
+			data.source = source;
+			data = JSON.stringify(data);
+			// Destination
+	   		$.ajax({
+	   			url:serverURL+"destinationsearch/" + data,
+	   			//url:serverURL + "test",
+	   			type: "GET",
+	   		    contentType: "application/json",
+	   		    dataType: "text",
+	   			error: function(response) { 
+	   		        console.log(response);
+	   		    },
+	   			success: function(response) {
+	   				$('#dddestination').empty()
+					$('#dddestination').append('<option>Any</option>')
+	   				response = JSON.parse(response);
+	   				response.forEach(function(value) {
+						var option=$('<option></option>').text(value.OrganizationName);
+						$('#dddestination').append(option);
+					})
+					getProviders($('#ddsource').val(), $('#dddestination').val())
+	   			}
+	   		});
+		}
+		
+		function getProviders(source, destination) {
+			var data = {}
+			data.source = source;
+			if(destination != "Any") {
+				data.destination = destination;
+			}
+			else data.destination = ""
+			data = JSON.stringify(data);
+			// Destination
+	   		$.ajax({
+	   			url:serverURL+"providersnames/" + data,
+	   			type: "GET",
+	   		    contentType: "application/json",
+	   		    dataType: "text",
+	   			error: function(response) { 
+	   		        console.log(response);
+	   		    },
+	   			success: function(response) {
+	   				$('#ddprovider').empty()
+	   				$('#ddprovider').append('<option>Any</option>')
+	   				response = JSON.parse(response);
+	   				response.forEach(function(value) {
+						var option=$('<option id='+value.FirstName + "|" + value.LastName + "|" + value.ProvNPI+'></option>').text(value.LastName + " " + value.FirstName + " - " + value.ProvNPI);
+						$('#ddprovider').append(option);
+					})
+	   			}
+	   		});
+		}
+		// Source
+   		$.ajax({
+   			url:serverURL+"source/" + data,
+   			type: "GET",
+   		    contentType: "application/json",
+   		    dataType: "text",
+   			error: function(response) { 
+   		        console.log(response);
+   		    },
+	   		success: function(response) {
+				response = JSON.parse(response);
+				response.forEach(function(value) {
+					var option=$('<option></option>').text(value.sourceorganization);
+					$('#ddsource').append(option);
+				})
+				getDestinations($('#ddsource').val())
+			}
+   		});
+   		// Column layout init
+		columns = $('.contents').layout({
+		  	west: {
+		       resizable: false,
+		       slidable: false,
+		       togglerLength_closed: 200, //toggler height (length)
+		       togglerLength_open: 200,
+		       spacing_closed: 10, //toggler width
+		       spacing_open: 5,
+		  	},
+		  	center: {
+		    },
+		  });
+	
+		// Date/time picker settings
+		var startDateTextBox = $('#from');
+		var endDateTextBox = $('#to');
+		startDateTextBox.datetimepicker({dateFormat:'mm-dd-yy'})
+		endDateTextBox.datetimepicker({dateFormat:'mm-dd-yy'})
+		
+		// Serialization function to turn form data into json convertable data
+	    $.fn.serializeFormJSON = function () {
+	        var o = {};
+	        var a = this.serializeArray();
+	        $.each(a, function () {
+	            if (o[this.name]) {
+	                if (!o[this.name].push) {
+	                    o[this.name] = [o[this.name]];
+	                }
+	                o[this.name].push(this.value || '');
+	            } else {
+	                o[this.name] = this.value || '';
+	            }
+	        });
+	        return o;
+	    };  
+	    
+	    $(".selectable").on('mouseup', function() { 
+	        var sel, range;
+	        var el = $(this)[0];
+	        if (window.getSelection && document.createRange) { //Browser compatibility
+	          sel = window.getSelection();
+	          if(sel.toString() == ''){ //no text selection
+	             window.setTimeout(function(){
+	                range = document.createRange(); //range object
+	                range.selectNodeContents(el); //sets Range
+	                sel.removeAllRanges(); //remove all ranges from selection
+	                sel.addRange(range);//add Range to a Selection.
+	            },1);
+	          }
+	        }else if (document.selection) { //older ie
+	            sel = document.selection.createRange();
+	            if(sel.text == ''){ //no text selection
+	                range = document.body.createTextRange();//Creates TextRange object
+	                range.moveToElementText(el);//sets Range
+	                range.select(); //make selection.
+	            }
+	        }
+	    });
+	})(jQuery);
+	
+	// Event handler serializes the form data and sends it via REST, populating the table with the response
+	$('form').submit(function (e) {
+		e.preventDefault();
+		// Attempt to destroy table so that if you're reloading instead of initially instantiating, it won't error
+		try {
+			table.settings()[0].jqXHR.abort()
+			table.destroy();
+			table, columns, a, b, result = "";
+		// We don't care if it fails
+		} catch (e){}
+		
+		// Missing from, but filled to. Goes back a month
+		if(!$("#from").val() && $("#to").val()) {
+			var monthAgo = moment().subtract(1, 'months').format('MM-DD-YYYY HH:mm')
+			$("#from").val(monthAgo)
+		}
+		// Missing to, but filled from. Goes to current date/time
+		else if(!$("#to").val() && $("#from").val()) {
+			var current = moment().format('MM-DD-YYYY HH:mm')
+			$("#to").val(current)
+		}
+		
+		$('#resize_wrapper_search').show("normal");
+		var data = {}
+		var payload = $(this).serializeFormJSON();
+		
+		// Clear user view of dates for ease of use
+		//$("#from").val("")
+		//$("#to").val("")
+		
+		// json manipulation to form provider information properly
+		try {
+			var masterProv = $('#ddprovider').find('option:selected').attr('id').split("|")
+			payload.ProvFirstName = masterProv[0]
+			payload.ProvLastName = masterProv[1]
+			payload.ProviderID = masterProv[2]
+		}
+		catch(e) {
+			payload.ProvFirstName = ""
+			payload.ProvLastName = ""
+			payload.ProviderID = ""
+		}
+		delete payload.prov
+		if (payload.Destination == "Any") { payload.Destination = "" }
+		data.payload = payload;
+		
+		// Reformat the dates into json friendly
+		if(data.payload.ProcessedDateTimeFrom && data.payload.ProcessedDateTimeTo) {
+			var from = new moment(data.payload.ProcessedDateTimeFrom, "MM-DD-YYYY HH:mm")
+			var to = new moment(data.payload.ProcessedDateTimeTo, "MM-DD-YYYY HH:mm")
+			from = from.format('YYYY-MM-DD HH:mm')
+			to = to.format('YYYY-MM-DD HH:mm')
+			data.payload.ProcessedDateTimeFrom = from
+			data.payload.ProcessedDateTimeTo = to
+		}
+		data = JSON.stringify(data);
+
+		var pageLength =  localStorage.getItem('searchTable_length') || 10;
+		
+		// Datatable definition
+		table = $('#searchTable').DataTable( {
+			paging: true,
+			orderCellsTop: true,
+			pageLength:parseInt(pageLength),
+	        "oLanguage": {
+	        	"sSearch": "",
+	        	"sEmptyTable": "No Data found based on parameters"
+	        },
+	        "sDom": '<"top"lpif>t<"bottom"><"clear">',
+			"ajax": {
+				"url":serverURL+"search/" + data,
+				"dataSrc": ""
+			},
+			"columns": [
+	            {
+	                "className":      'details-control',
+	                "orderable":      false,
+	                "data":           null,
+	                "defaultContent": '<button class="hamburger hamburger--collapse" type="button">' +
+	                	  					'<span class="hamburger-box">' +
+	                							'<span class="hamburger-inner"></span>' +
+	              							'</span>' +
+	            						'</button>'
+	            },
+	         	// Patient name builder
+	            {
+	            	"render": function ( data, type, row ) { 
+	            		return row['PatientLastName'] + ", " + row['PatientFirstName'] ; 
+	            	}
+	            },
+	         	// DOB rules for formatting
+	            {
+	            	"render": function ( data, type, row ) {
+	            		var s = row['PatientDOB']
+	            		return s[4]+s[5]+"/"+s[6]+s[7]+"/"+s[0]+s[1]+s[2]+s[3]
+	            	}
+	            },
+	            { data: "ResultType" },
+	            { data: "Report" },
+	            { data: "ResultStatus" },
+	            { data: "PatientClass" },
+	         	// Provider information builder
+	            {
+	            	"render": function ( data, type, row ) { 
+	            		return row['ProvLastName'] + ", " + row['ProvFirstName'] +
+	            		" " + row['ProviderID'] + "-" + row['ProviderRole']; 
+	               }
+	            },
+	            { data: "ProcessedDateTime" },
+	            { data: "Destination" },
+	            { data: "SourceOID" },
+            
+	            { data: "PatientFirstName" },
+	            { data: "RouteID" },
+	            { data: "MessageControlID" },
+	            { data: "MessageDateTime" },
+	            { data: "MRN" },
+	            { data: "AccessionID" },     
+	            { data: "OBRLOINCDescription" },
+	            { data: "OBRUniversalServiceID" },
+	            { data: "DocumentType" },
+	            { data: "SessionId"	},
+	            { data: "DelayEntry" },
+	            { data: "DestinationStatus" },
+	            
+			],
+			"order": [[8, 'dec']],
+			// Conditional formatting for undelivered messages to look grayed out
+			rowCallback: function(row, data, index) {
+			    if (data['RouteID'] == '') {
+			    	$(row).find('td:not(.details-control)').each (function() {
+			    		$(this).addClass('notDelivered')
+			    	}); 
+			    }
+			}
+		});
+		
+		// Save the page length on change
+		$('#searchTable_length').on("change", 'select', function(){
+	        // for persistant data
+	        localStorage.setItem('searchTable_length',$(this).val());
+	        // just for the session
+	        sessionStorage.setItem('searchTable_length',$(this).val());
+	    });
+		
+		table.columns( '.detail' ).visible( false );
+		
+		$('.dataTables_wrapper .dataTables_filter input').attr("placeholder", '\uD83D\uDD0E Search All Columns');
+		//table.columns.adjust().draw();
+		// Individual column search DOM definition. We add the headers to an array for future use. This is because when the
+		// datatable is refreshed, the header values are undefined for some reason. My hotfix is saving their values in an unmutable array
+		$('#searchTable tfoot th').each( function (i) {
+			var headerTitle;
+			var title = "&#x1F50E;"
+			// Check if the array is full
+			if (footers.length != 11) {
+				headerTitle = $(this).closest('tr').find('th').eq(i).text();
+				footers.push(headerTitle)
+			}
+			// If not then keep adding to it
+			else {
+				headerTitle = footers[i]
+			}
+			// Format for each search box
+	        $(this).html( '<input type="text" placeholder="'+title+' '+headerTitle+'" data-index="'+i+'" />' );
+	    });
+		// Disallow future changes to the array
+		Object.freeze(footers);
+		
+		$('#length_change').change( function() { 
+		    oTable.page.len( $(this).val() ).draw();
+		});
+		
+		// Event handling for search columns
+		$( table.table().container() ).on( 'keyup', 'tfoot input', function () {
+	        table
+	            .column( $(this).data('index') )
+	            .search( this.value )
+	            .draw();
+	    });
+	    //$('.dataTables_scrollBody').css('height', ($(window).height() - 229));
+	});
+	
+	// Controls the visibility of the details section of each row
+	$('#searchTable tbody').on('click', 'td.details-control', function (e) {	
+		e.preventDefault();
+		e.stopPropagation();
+		var tr = $(this).closest('tr');
+	    var row = table.row(tr);
+	    var $hamburger = tr.find('.hamburger');
+	       
+	    if ( row.child.isShown() ) {
+		    $hamburger.toggleClass("is-active");
+		    $('div.slider', row.child()).slideUp( "fast", function () {
+				// This row is already open - close it
+				row.child.hide();
+				tr.removeClass('shown');
+		    });
+	    }
+	    else {
+		    // Open this row
+		    row.child( format(row.data())).show();
+		    $('div.slider', row.child()).slideDown("fast");
+		    tr.addClass('shown');
+		    $hamburger.toggleClass("is-active");
+	    }
+    });
+	
+	// Highlights all the appropriate cells in a given row
+	function highlightSelected(td) {
+		td.parent('tr').find('td:not(.details-control)').each (function() {
+    		$(this).addClass('selected_row')
+    	});
+	}
+	
+	// Our selector excludes the expand elements
+	// This adds data to the details column containing information from a new ajax call based on data from the row
+	$('#searchTable tbody').on('click', 'td:not(.details-control)', function (e) {
+
+		if(!detailEvent) return;
+		// Make sure we're in the right element
+		try {
+			if($(this).parent().attr("class").trim().length == 0) {}
+		} catch(e) { return; }
+		
+		e.preventDefault();
+        e.stopPropagation();
+    	
+        // Clear dialog UI
+        $('#SessionID').text('')
+		$('#messageDetailsHeader').text('')
+		$('#QueuedforDelivery').text('')
+		$('#DeliveryStatus').text('')
+		$('#Source').text('')
+		$('#Received').text('')
+		$('#Processed').text('')
+		$('#OriginalHL7Result').text('')
+		$('#GLHCCommonHL7Result').text('')
+		$('#DeliveredHL7Result').text('')
+		$('#difference').text('')
+		$('#DeliveryQueued').text('')
+		$('#ConnectionEnabled').text('')
+		$('#ConnectionType').text('')
+		$('#Port').text('')
+		$('#IPAddress').text('')
+		$('#ACKReceived').text('')
+		$('#ACK').text('')
+		$('#midConDetails').text('')
+        // Check the css if it's selected, if it is then the user is deselecting, and we close the dialog and end the function
+        if ( $(this).hasClass('selected_row')) {
+        	$('tr td').removeClass('selected_row')
+        	// Close dialog
+        	$('#detailColumn').popup('hide');
+        	return;
+        }
+        // Otherwise remove styling from whatever is selected and make this the new selection, and continue with the query
+        else {
+        	$("#thinkingBox").show()
+            $('tr td').removeClass('selected_row')
+            highlightSelected($(this))
+        }
+        
+        // Get data from the selected row
+        var datum = table.row( $(this).parents('tr') ).data();
+   		var data = {}
+   		// We want this field for later because it's not in the details query
+   		var patientName = datum.PatientLastName + ", " + datum.PatientFirstName;
+   		var report = datum.Report
+   		// The two params we use to query our information
+		var payload = {
+			"sessionid":datum.SessionId,
+			"routeid":datum.RouteID,
+			"firstname":datum.PatientFirstName,
+			"lastname":datum.PatientLastName,
+			"mrn":datum.MRN,
+			"source":datum.SourceOID,
+			"dob":datum.PatientDOB,
+			"resulttype":datum.ResultType,
+   		};
+		data.token = {"token":getCookie("token")};
+		data.payload = payload;
+		data = JSON.stringify(data);
+		
+   		ajaxDetail = $.ajax({
+   			url:serverURL+"detail/" + data,
+   			type: "GET",
+   		    contentType: "application/json",
+   		    dataType: "text",
+   			error: function(response) { 
+   		        console.log(response);
+   		    },
+   			success: function(response) {
+   				try {
+					$('#messageDetailsHeader').text(patientName + " " + report)
+   					response = JSON.parse(response);
+   					if(jQuery.isEmptyObject(response.Delivery) && jQuery.isEmptyObject(response.PreDelivery)) {
+   						throw "Empty"
+   					}
+   					if (!jQuery.isEmptyObject(response.Delivery)) {
+   						var Delivery = JSON.parse(response.Delivery)
+   						Delivery = Delivery[0]
+   						$('#SessionID').text(Delivery.SessionID)
+   	   					$('#QueuedforDelivery').text(Delivery.DeliveryQueued)
+   	   					//$('#DeliveryStatus').text(Delivery.Delivery_Status)
+   	   					$('#DeliveryQueued').text(Delivery.DeliveryQueued)
+   	   					$('#ConnectionEnabled').text(Delivery.ConnectionEnabled)
+   	   					$('#ConnectionType').text(Delivery.ConnectionType)
+   	   					//$('#Port').text(Delivery.Port)
+   	   					//$('#IPAddress').text(Delivery.IPAddress)
+   	   					//$('#ACKReceived').text(Delivery.ACKReceived)
+   	   					$('#ACK').text(Delivery.ACK)
+   	   					
+   	   					var x = Delivery.Delivered_HL7.replace(/(\r\n|\n|\r)/g,"\r\n");
+   	   					$('#DeliveredHL7Result').text(x)
+   	   					$('#DeliveryStatus').text(Delivery.Delivery_Status + " " + Delivery.IPAddress + ":" + Delivery.Port + " " + Delivery.ACKReceived)
+
+   						~$('#DeliveredHL7Result').html().indexOf("|^PDF^^base64") ? $('#Deliveredviewpdfbtn').show() : $('#Deliveredviewpdfbtn').hide()	
+   					}
+   					if(!jQuery.isEmptyObject(response.PreDelivery)) {
+		   				var PreDelivery = JSON.parse(response.PreDelivery)
+		   				PreDelivery = PreDelivery[0]
+		   				
+   						$('#Source').text(PreDelivery.Original_Source)
+   	   					$('#Received').text(PreDelivery.Original_TimeProcessed)
+   	   					$('#Processed').text(PreDelivery.Common_TimeProcessed)
+   	   					
+   	   					var x = PreDelivery.Original_HL7.replace(/(\r\n|\n|\r)/g,"\r\n");
+		   				var y = PreDelivery.Common_HL7.replace(/(\r\n|\n|\r)/g,"\r\n");
+   	   					$('#OriginalHL7Result').text(x)
+   	   					$('#GLHCCommonHL7Result').text(y)
+   	   					
+   	   					~$('#OriginalHL7Result').html().indexOf("|^PDF^^base64") ? $('#Originalviewpdfbtn').show() : $('#Originalviewpdfbtn').hide()
+   		   	   			~$('#GLHCCommonHL7Result').html().indexOf("|^PDF^^base64") ? $('#Commonviewpdfbtn').show() : $('#Commonviewpdfbtn').hide()
+   					}
+					try {
+						// Trigger the hl7 viewers 
+						parseHL7($('#OriginalHL7Result').html(), '#OriginalHL7Table')
+						parseHL7($('#GLHCCommonHL7Result').html(), '#GLHCCommonHL7Table')
+						parseHL7($('#DeliveredHL7Result').html(), '#DeliveredHL7Table')
+						
+						!$('#DeliveredHL7Table').html() ? $('#deliveredBlock, #differenceBlock').hide() : $('#deliveredBlock, #differenceBlock').show()
+						!$('#GLHCCommonHL7Table').html() ? $('#commonBlock').hide() : $('#commonBlock').show()
+						!$('#OriginalHL7Table').html() ? $('#originalBlock').hide() : $('#originalBlock').show()
+					}
+					catch(e) {}
+					// Open dialog
+					$('#detailColumn').popup('show');
+					$('#detailColumn').resizable();
+					
+   				}
+   				catch(e) {
+   					$("#thinkingBox").fadeOut("slow");
+   					$('#detailColumn').popup('hide');
+   					$("#errorBox").fadeIn("slow", function() {
+   						$("#errorBox").fadeOut("slow");
+   					});
+   					$('tr td').removeClass('selected_row')
+   				}
+   			}
+   		}).done(function() {
+   			$("#thinkingBox").fadeOut("slow");
+   		});
+   		//table.columns.adjust().draw();
+	});
+	$.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) { 
+		//navigate("search.html");
+		alert("Search timed out, please try again.")
+	};
+	// Event handler for clicking outside the dialog
+	$("body").on("click",".ui-widget-overlay",function() {
+	     $('#table-dialog').dialog( "close" );
+	});
+	
+	// Activates the difference checker
+	function changed() {
+		var diff = JsDiff.diffWords(a.textContent, b.textContent);
+		var fragment = document.createDocumentFragment();
+		for (var i=0; i < diff.length; i++) {
+
+			if (diff[i].added && diff[i + 1] && diff[i + 1].removed) {
+				var swap = diff[i];
+				diff[i] = diff[i + 1];
+				diff[i + 1] = swap;
+			}
+
+			var node;
+			if (diff[i].removed) {
+				node = document.createElement('del');
+				node.appendChild(document.createTextNode(diff[i].value));
+			} else if (diff[i].added) {
+				node = document.createElement('ins');
+				node.appendChild(document.createTextNode(diff[i].value));
+			} else {
+				node = document.createTextNode(diff[i].value);
+			}
+			fragment.appendChild(node);
+		}
+		return fragment;
+	}
+</script>
+<style>
+	.hiddenLogic {
+		display: none;
+	}
+	select {
+		border-radius: 5px;
+	}
+	#closeDetail {
+		float: left;
+	}
+	#errorBox {
+		display: none;
+		position: relative;
+		background: #DD5F13;
+		width: 300px;
+		border-radius: 6px;
+		border: #DD5F13 4px solid;
+		top: 18px !important;
+  		margin-left: auto;
+  		margin-right: auto;
+  		z-index: 1;
+	}
+	#thinkingBox {
+		display: none;
+		position: relative;
+		
+		top: 18px !important;
+  		margin-left: auto;
+  		margin-right: auto;
+  		z-index: 1;
+  		
+	    border: 16px solid #f3f3f3; /* Light grey */
+	    border-top: 16px solid #70A059; /* Blue */
+	    border-radius: 50%;
+	    width: 60px;
+	    height: 60px;
+	    animation: spin 2s linear infinite;
+	}
+
+	@keyframes spin {
+	    0% { transform: rotate(0deg); }
+	    100% { transform: rotate(360deg); }
+	}
+	
+	#clearBtn, #cancelBtn {
+		width: 100%;
+		margin: 2.5px 5px 5px 0;
+	}
+	
+	#detailColumn_background {
+	  transition: all 0.3s 0.3s;
+	}
+	#detailColumn, #detailColumn_wrapper {
+	  transition: all 0.3s ease-out;
+	}
+	#detailColumn {
+	  top: 59px !important;
+	  float: right;
+	  height: calc(100vh - 59px);
+	  width: 750px;
+	  overflow: auto;
+	}
+	#detailsContents h2 {
+		color: black;
+		border-radius: 5px;
+	}
+    #detailColumn th, #detailColumn th * {
+    	color: black;
+    	text-align: center;
+    }
+	#searchTable {
+		table-layout: fixed;
+  		word-wrap:break-word;
+	}
+	.selected_row {
+	    background-color: #5f5f5f !important;
+	    color: white !important;
+	 }
+	.notDelivered {
+	  background-color: #e2e2e2;
+	  color: gray;
+	}
+	.ui-dialog .ui-dialog-buttonpane {
+		background-color: #373737;
+		margin-top: 0;
+		padding: 0;
+	}
+	.ui-dialog-titlebar-close {
+	    visibility: hidden;
+	}
+	.ui-dialog-titlebar {
+	    background: #773A7A;
+	    border: 0;
+	    color: #fff;
+	    font-weight: normal;
+	}
+	.ui-dialog {
+		left: 0 !important;
+	}
+	#pdfDialog {
+		background-color: #373737 !important;
+		z-index: 1000000000;
+	}
+	#pdfDialog p {
+		color: white;
+	}
+	#pdfview {
+		height: 100%;
+		width: 100%;
+	}
+	#detailColumn_wrapper {
+		z-index: 0 !important;
+	}
+	#welcomLabelDetail {
+		font-size: 200px;
+		color: #373737 !important;
+		position: absolute;
+	    top: 50%;
+	    left: 50%;
+	    transform: translateX(-50%) translateY(-50%);
+	}
+	#welcomLabelDetailError {
+		font-size: 50px;
+		text-align: center;
+		color: #373737 !important;
+		position: absolute;
+	    top: 50%;
+	    left: 50%;
+	    transform: translateX(-50%) translateY(-50%);
+	}
+	#detailsContents {
+		background-color: #dddddd;
+		border-radius: 5px;
+	}
+	#detailTable th {
+		vertical-align:top;
+		width: 15%;
+	}
+	#detailTable tbody > tr > td {
+		text-align: left;
+		background-color: white;
+    	border-style: solid;
+    	border-color: #999999;
+    	border-radius: 5px;
+	}
+	.nowrapDetail {
+		white-space: nowrap;
+	}
+	#controls {
+		margin-top: 5px;
+	}
+	.ui-datepicker-prev:before {
+		content: "\21E6";
+		font-size: 30px;
+	}
+	.ui-datepicker-next:before {
+		content: "\21E8";
+		font-size: 30px;
+	}
+	Label {
+		color: white;
+		font-size: 13px;
+	}
+	select {
+		width: 100%;
+	}
+	#searchTable_length label select {
+		width:165px; 
+	}
+	#ui-datepicker-div {
+		left: 220px !important;
+	}
+	h2 {
+		margin: auto;
+		color: white;
+		text-align: center;
+	}
+	.clear {
+		clear:both;
+	}
+	.wrapword {
+		white-space: pre-line;
+		height: 200px;
+		width: 640px;
+		overflow: scroll;
+	}
+	#GLHCCommonHL7Table, #DeliveredHL7Table, #OriginalHL7Table {
+		height: 200px;
+		width: 640px;
+	}
+	#DeliveredHL7Result, #GLHCCommonHL7Result, #OriginalHL7Result, #difference {
+		display: inline-block;
+	}
+	.dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_processing, .dataTables_wrapper .dataTables_paginate,
+	.dataTables_wrapper .dataTables_paginate .paginate_button {
+		color: white !important;	
+	}
+	.dataTables_wrapper {
+        width: 100%;
+        margin: 0 auto;	
+    }
+    #searchColumn {
+	    background-color: #373737;
+	
+    }
+    #tableColumn {
+	    width: 75%;
+	    height: 100%;    
+	    float: left; 
+	    padding: 3px; 
+	    background-color: #373737
+    }
+    .contents {
+	    position: relative;
+	 	height: 100%;   
+	 	width: 100%;
+    }
+	.main-column {
+		float: left;
+		height: 100%;
+	}
+	#hideDetailsBtn {
+		height: 40px !important;	
+	}
+	th,td {
+		background-color: rgba(255,255,255,0.2);
+		color: black;
+	}
+	#detailInvisible * {
+		display: none;	
+	}
+	#search.button-primary {
+		width: 100%;
+		height: 40px;
+		margin: 0;
+	}
+	.dataTables_wrapper .dataTables_filter {
+		font-size: 18px;
+	}
+	form {
+		display: grid;
+  		grid-template-columns: 175px;
+  		justify-content: center;
+	}
+	.ui-datepicker {
+		background-color: white;
+	}
+	.ui-datepicker td {
+	    border:2px solid #70A059;
+	}
+	.ui-widget-overlay {
+	  opacity: 0.5;
+	  filter: Alpha(Opacity=50);
+	  background-color: black;
+	}
+	tr.shown td.details-control {
+	    background-color: #70A059;
+	}
+	#resize_wrapper_search {
+		display: none;
+		width: 100%;
+	}
+	input, label {
+	    display: inline;
+	}
+	.messageParam {
+		float: left;
+		margin: 5px 0;
+	}
+	input[type=text] {
+	    width: 100%;
+	    margin: 2px 0 2px 0;
+	    box-sizing: border-box;
+	    border: 3px solid white;
+	    border-radius: 5px;
+	    -webkit-transition: 0.5s;
+	    transition: 0.5s;
+	    outline: none;
+	}
+
+	input[type=text]:focus {
+	    border: 3px solid #555;
+	}
+	
+	.hl7ParseTable tr.header {
+	    display: table-row;
+	    width: 100%;
+	}
+	
+	.hl7ParseTable td, #hl7Table th {
+	    border: 1px solid #dddddd;
+	    text-align: left;
+	}
+	.hl7ParseTable tr:hover {
+		background-color: #ddd;
+	}
+	#OriginalHL7, #GLHCCommonHL7, #DeliveredHL7 {
+		display: none;
+	}
+</style>
