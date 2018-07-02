@@ -1,0 +1,457 @@
+@charset "ISO-8859-1";
+/**************************************************************/
+/* FIRST ORDER DEFINITIONS */
+/**************************************************************/
+
+html, body {
+	background:#373737;
+	height:100%;
+    width:100%;
+    margin: 0px;
+    padding: 0px;
+}
+body {
+	font-family: 'Open Sans', sans-serif;
+	font-size: 12px;
+}
+Label {
+	color: white;
+}
+select {
+	width: 100%;
+	border-radius: 5px;
+}
+p {
+	text-decoration: none;
+	color:#fff;
+}
+h1 {
+	font-size:3em;
+	color: #fff;
+	margin: 20px auto;
+}
+h2 {
+	margin: auto;
+	color: #fff;
+	text-align: center;
+}
+a {
+	text-align: center;
+}
+th {
+	background-color: rgba(255,255,255,0.2);
+	font-size:.9em;
+	color: #fff;
+}
+td {
+	color: black;
+}
+tr.shown td.details-control {
+    background-color: #70A059;
+}
+td.details-control {
+    background-color: #373737;
+    cursor: pointer;
+}
+form {
+	display: grid;
+	grid-template-columns: 175px;
+ 	justify-content: center;
+}
+label select {
+	width: 47px;
+}
+ul.none {
+	list-style-type: none
+}
+li.plus:before {
+	content: "+";
+	padding-right: 5px;
+}
+li.minus:before {
+	content: "-";
+	padding-right: 5px;
+}
+input[type=text] {
+    width: 100%;
+    margin: 2px 0 2px 0;
+    box-sizing: border-box;
+    border: 3px solid white;
+    border-radius: 5px;
+    -webkit-transition: 0.5s;
+    transition: 0.5s;
+    outline: none;
+}
+input[type=text]:focus {
+    border: 3px solid #555;
+}
+input:checked + .sliderCheckbox {
+	background-color: #70A059;
+}
+input:focus + .sliderCheckbox {
+	box-shadow: 0 0 1px #70A059;
+}
+input:checked + .sliderCheckbox:before {
+	-webkit-transform: translateX(26px);
+	-ms-transform: translateX(26px);
+	transform: translateX(26px);
+}
+div.slider {
+	display: none;
+}
+table.dataTable tbody td.no-padding {
+   	padding: 0;
+}
+button:focus {
+	outline: none;
+}
+
+/**************************************************************/
+/* CLASS DEFINITIONS */
+/**************************************************************/
+
+.detailTable th {
+	vertical-align:top;
+	width: 15%;
+}
+.detailTable tbody > tr > td {
+	text-align: left;
+	background-color: white;
+   	border-style: solid;
+   	border-color: #999999;
+   	border-radius: 5px;
+}
+th.sorting, .sorting_asc, .sorting_desc {
+	background-color: #5f5f5f;
+}
+.messageParam {
+	float: left;
+	margin: 5px 0;
+}
+.logo {
+	top: 0;
+	left: 0;
+	position: absolute
+}
+.closeDetail {
+	float: left;
+}
+.header {
+	width: 100%;
+	background-color: #5f5f5f;
+}
+.wrap {
+	height: 100%;
+	width: 100%;
+	display: table;
+}
+.wrapword {
+	white-space: pre-line;
+	height: 200px;
+	width: 640px;
+	overflow: scroll;
+}
+.content {
+	display: table-row;
+	height: 100%;
+}
+.nav {
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	text-align:center;
+	display: flex;
+}
+.shown .details-control {
+	background-color: #70A059;
+}
+
+.contents {
+	position: relative;
+	height: 100%;   
+	width: 100%;
+}
+.inactive {
+	background-color: #dddddd;
+	color: gray;
+}
+
+.selected_row {
+	background-color: #5f5f5f !important;
+	color: white !important;
+}
+.detailInvisible * {
+	display: none;	
+}
+.dataTables_wrapper {
+	width: 100%;
+	margin: 0 auto;	
+}
+.dataTables_wrapper .dataTables_filter input {
+	width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #fff;
+    border-radius: 5px;
+    -webkit-transition: 0.5s;
+    transition: 0.5s;
+    outline: none;
+    height: 23px;
+	padding: 0 !important;
+	margin: 3px 0 0 0 !important;
+}
+.popup_wrapper {
+	display: none;
+}
+.main-column {
+	height: 100%;    
+	float: left; 
+	padding: 3px; 
+	background-color: #373737
+}
+.main-column.ui-layout-west.ui-layout-pane.ui-layout-pane-west {
+	background-color: #373737;
+}
+.dataTables_wrapper .dataTables_filter input:focus {
+    border: 3px solid #555;
+}
+.errorBox {
+	display: none;
+	position: relative;
+	background: #DD5F13;
+	width: 300px;
+	border-radius: 6px;
+	border: #DD5F13 4px solid;
+	top: 18px !important;
+	margin-left: auto;
+	margin-right: auto;
+	z-index: 1;
+}
+.thinkingBox {
+	display: none;
+	position: relative;
+	top: 18px !important;
+	margin-left: auto;
+	margin-right: auto;
+	z-index: 1;
+    border: 16px solid #f3f3f3;
+    border-top: 16px solid #70A059;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 2s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.settings {
+	width: 100%;
+	margin: 5px 5px 5px 0 !important;	
+}
+.contentHeader {
+	display: flex;
+  	flex-direction: column;
+}
+.dialog-content {
+	margin: 10px;
+}
+.button-primary, .button-error, .button-warning, .button-secondary, .ui-dialog button {
+    padding: 10px;
+    margin: 10px;
+	color: #fff;
+	font-weight: 600;
+	font-size: 1em;
+	border-radius:4px;
+	border: none;
+}
+.button-red {
+    background: #DD5F13 !important;
+}
+.button-red:hover {
+	background:#f7d8c4 !important; 
+}
+.button-primary, .ui-dialog button {
+	background: #70A059;
+} 
+.button-primary:hover, .ui-dialog button:hover {
+	background:#B2FF8E; 
+}
+.button-error, .button-warning, .button-secondary {
+	background: rgb(223, 117, 20);
+}
+.parse-unit {
+	overflow: scroll;
+	white-space: nowrap;
+	padding: 30px;
+	margin-bottom: 30px;
+	font-size: medium;
+	font-weight: 200;
+	line-height: 10px;
+	color: inherit;
+	background-color: #eee;
+	-webkit-border-radius: 6px;
+	-moz-border-radius: 6px;
+	border-radius: 6px;
+}
+/* The container */
+.checks {
+    display: block;
+    position: relative;
+    padding-left: 35px;
+    margin-bottom: 12px;
+    margin-top: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    color: #fff;
+}
+/* The switch - the box around the slider */
+.switch {
+	position: relative;
+	display: inline-block;
+	width: 60px;
+	height: 34px;
+}
+/* Hide default HTML checkbox */
+.switch input {
+	display:none;
+}
+/* The slider */
+.sliderCheckbox {
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #ccc;
+	-webkit-transition: .4s;
+	transition: .4s;
+	border-radius: 5px;
+}
+.sliderCheckbox:before {
+	position: absolute;
+	content: "";
+	height: 26px;
+	width: 26px;
+	left: 4px;
+	bottom: 4px;
+	background-color: #fff;
+	-webkit-transition: .4s;
+	transition: .4s;
+	border-radius: 5px;
+}
+/* Rounded sliders */
+.sliderCheckbox.round {
+	border-radius: 34px;
+}
+.sliderCheckbox.round:before {
+	border-radius: 50%;
+}
+/* Hide the browser's default checkbox */
+.checks input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+/* Create a custom checkbox */
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 25px;
+    width: 25px;
+    background-color: #eee;
+}
+/* On mouse-over, add a grey background color */
+.checks:hover input ~ .checkmark {
+    background-color: #ccc;
+}
+/* When the checkbox is checked, add a green background */
+.checks input:checked ~ .checkmark {
+    background-color: #70A059;
+}
+/* Create the checkmark/indicator (hidden when not checked) */
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+/* Show the checkmark when checked */
+.checks input:checked ~ .checkmark:after {
+    display: block;
+}
+/* Style the checkmark/indicator */
+.checks .checkmark:after {
+    left: 9px;
+    top: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+.detailColumn {
+	top: 59px !important;
+	float: right;
+	height: calc(100vh - 59px);
+	width: 750px;
+	overflow: auto;
+}
+.detailsContents {
+	background-color: #dddddd;
+	border-radius: 5px;
+}
+.detailsContents h2 {
+	color: black;
+	border-radius: 5px;
+}
+.detailColumn th, .detailColumn th * {
+   	color: black;
+   	text-align: center;
+}
+.miniDataTable {
+	border: 2px solid #373737;
+	border-radius: 5px;
+}
+.miniDataTableHeader {
+	float: left;
+	margin: 10px;
+}
+
+/**************************************************************/
+/* TAG DEFINITIONS */
+/**************************************************************/
+
+#logout {
+	top: 0;
+	right: 0;
+	position: absolute
+}
+#resize_wrapper_search {
+	display: none;
+	width: 100%;
+}
+#resize_wrapper {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: none;
+}
+/*
+#detailColumnPopup_background {
+	transition: all 0.3s 0.3s;
+}
+.detailColumn, #detailColumnPopup_wrapper {
+	transition: all 0.3s ease-out;
+}
+*/
+

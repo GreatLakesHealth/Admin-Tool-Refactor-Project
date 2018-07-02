@@ -1,29 +1,33 @@
 <div class="contents">
-	<div class="main-column ui-layout-west" id="searchColumn">
-		<Label>Source</Label><br>
-		<select id="ddsource" name="SourceOID"><option value="">Any</option></select><br>
-		<Label>Destination</Label><br>
-		<select id="dddestination" name="Destination"><option value="">Any</option></select><br>
-		
-		<Label>Result Type (Ctr + click)</Label><br>
-		<select id="resultTypeInput" name="ResultType" multiple size='7'>
-			<option value="">Any</option>
-			<option value="LAB">LAB</option>
-			<option value="LAB-MB">LAB-MB</option>
-			<option value="LAB-BB">LAB-BB</option>
-			<option value="LAB-PATH">LAB-PATH</option>
-			<option value="RAD">RAD</option>
-			<option value="TRANS">TRANS</option>
-		</select><br>
-		<Label>EMR</Label><br>
-		<select id="ddemr" name="">
-			<option value="">Any</option>
-		</select><br>
-		<button type="button" id="refreshRoutes" class="settings button-primary">Refresh</button>
+	<div class="main-column ui-layout-west">
+		<form action="#">
+			<div class="search messageParam">
+				<Label>Source</Label><br>
+				<select id="ddsource" name="SourceOID"><option value="">Any</option></select><br>
+				<Label>Destination</Label><br>
+				<select id="dddestination" name="Destination"><option value="">Any</option></select><br>
+				
+				<Label>Result Type (Ctr + click)</Label><br>
+				<select id="resultTypeInput" name="ResultType" multiple size='7'>
+					<option value="">Any</option>
+					<option value="LAB">LAB</option>
+					<option value="LAB-MB">LAB-MB</option>
+					<option value="LAB-BB">LAB-BB</option>
+					<option value="LAB-PATH">LAB-PATH</option>
+					<option value="RAD">RAD</option>
+					<option value="TRANS">TRANS</option>
+				</select><br>
+				<Label>EMR</Label><br>
+				<select id="ddemr" name="">
+					<option value="">Any</option>
+				</select><br>
+				<button type="button" id="refreshRoutes" class="settings button-primary">Refresh</button>
+			</div>
+		</form>
 	</div>
-	<div class="main-column ui-layout-center" id="tableColumn">
+	<div class="main-column ui-layout-center">
 		<div id="resize_wrapper">
-			<table id="routesTable" class="display compact wrap" cellspacing="0" width="100%">
+			<table id="dataTable" class="display compact wrap" cellspacing="0" width="100%">
 			    <thead>
 			        <tr>
 			        	<th id="detailCol">Details</th>
@@ -82,273 +86,249 @@
 			</table>
 		</div>
 	</div>
-	<div id="orgDetails">
-		<button id="closeDetail" class="button-primary">Close</button>
-		<br>
-		<h2>Organization Information</h2>
-		<br>
-		<table id="orgInfoTable">
-			<tr>
-				<td>Name: </td>
-				<td id="OrgInfoName"></td>
-			</tr>
-			<tr>
-				<td>Type: </td>
-				<td id="OrgInfoType"></td>
-			</tr>
-			<tr>
-				<td>Contact: </td>
-				<td id="OrgInfoContact"></td>
-			</tr>
-			<tr>
-				<td>Email: </td>
-				<td id="OrgInfoEmail"></td>
-			</tr>
-			<tr>
-				<td>Phone: </td>
-				<td id="OrgInfoPhone"></td>
-			</tr>
-			<tr>
-				<td>EMR: </td>
-				<td id="OrgInfoEMR"></td>
-			</tr>
-		</table>
-		<h2 id="providerHeader">Providers</h2>
-		<table id="providerTable" class="display compact wrap" cellspacing="0" width="100%">
-		    <thead>
-		        <tr>
-		        	<th>NPI</th>
-		        	<th>Last Name</th>
-		        	<th>First Name</th>
-		        </tr>
-		    </thead>
-		    <tbody>
-		        <tr>
-		        	<td></td>
-		        	<td></td>
-		            <td></td>
-		        </tr>
-		    </tbody>
-		</table>
+	<div class="detailColumn" id="detailColumnPopupRoute">
+		<div class="detailsContents">
+			<button class="button-primary closeDetail">Close</button>
+			<br>
+			<h2>Organization Information</h2>
+			<br>
+			<table class="detailTable">
+				<tr id="conDetailsBlock">
+					<th>
+						<label>Route Details</label>
+					</th>
+					<td>
+						<table="breakoutDetailsTable">
+							<tr>
+								<td>Name: </td>
+								<td id="OrgInfoName"></td>
+							</tr>
+							<tr>
+								<td>Type: </td>
+								<td id="OrgInfoType"></td>
+							</tr>
+							<tr>
+								<td>Contact: </td>
+								<td id="OrgInfoContact"></td>
+							</tr>
+							<tr>
+								<td>Email: </td>
+								<td id="OrgInfoEmail"></td>
+							</tr>
+							<tr>
+								<td>Phone: </td>
+								<td id="OrgInfoPhone"></td>
+							</tr>
+							<tr>
+								<td>EMR: </td>
+								<td id="OrgInfoEMR"></td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+			</table>
+			<h2 class="miniDataTableHeader">Providers</h2>
+			<table id="providerTable" class="miniDataTable display compact wrap" cellspacing="0" width="100%">
+			    <thead>
+			        <tr>
+			        	<th>NPI</th>
+			        	<th>Last Name</th>
+			        	<th>First Name</th>
+			        </tr>
+			    </thead>
+			    <tbody>
+			        <tr>
+			        	<td></td>
+			        	<td></td>
+			            <td></td>
+			        </tr>
+			    </tbody>
+			</table>
+		</div>
 	</div>
 </div>
 <script>
 var table;
-	/* Formatting function for row details - modify as you need */
-	function format ( d ) {
-	    // `d` is the original data object for the row
-	    return '<div class="slider">' +
-	    	'<table cellpadding="5" cellspacing="0" border="0" style="float:left;padding-left:5px;">'+
-				'<tr>'+
-				    '<td>MSH-3:</td>'+
-				    '<td>'+d.MSH3+'</td>'+
-			    '</tr>'+
-				'<tr>'+
-			        '<td>MSH-4:</td>'+
-			        '<td>'+d.MSH4+'</td>'+
-				'</tr>'+
-				'<tr>'+
-				    '<td>MSH-5:</td>'+
-				    '<td>'+d.MSH5+'</td>'+
-				'</tr>'+
-				'<tr>'+
-					'<td>MSH-6:</td>'+
-					'<td>'+d.MSH6+'</td>'+
-				'</tr>'+
-				'<tr>'+
-					'<td>Aggregate:</td>'+
-					'<td>'+d.Aggregate+'</td>'+
-				'</tr>'+
-				'<tr>'+
-					'<td>Create TS:</td>'+
-					'<td>'+d.CreateTS+'</td>'+
-				'</tr>'+
-				'<tr>'+
-					'<td>Delay:</td>'+
-					'<td>'+d.Delay+'</td>'+
-				'</tr>'+
-				'<tr>'+
-					'<td>PV13 Location:</td>'+
-					'<td>'+d.PV13Location+'</td>'+
-				'</tr>'+
-				'<tr>'+
-					'<td>Preserve Providers:</td>'+
-					'<td>'+d.PreserveProviders+'</td>'+
-				'</tr>'+
-				'<tr>'+
-					'<td>Source Organization:</td>'+
-					'<td>'+d.sourceorganization+'</td>'+
-				'</tr>'+
-				'<tr>'+
-					'<td>Transformations:</td>'+
-					'<td>'+d.Transformations+'</td>'+
-				'</tr>'+
-				/*
-				'<tr>'+
-					'<td>Username:</td>'+
-					'<td>'+d.Username+'</td>'+
-				'</tr>'+
-				*/
-		    '</table>' +
-	    '</div>';
-	}
+/* Formatting function for row details - modify as you need */
+function format ( d ) {
+    // `d` is the original data object for the row
+    return '<div class="slider">' +
+    	'<table cellpadding="5" cellspacing="0" border="0" style="float:left;padding-left:5px;">'+
+			'<tr>'+
+			    '<td>MSH-3:</td>'+
+			    '<td>'+d.MSH3+'</td>'+
+		    '</tr>'+
+			'<tr>'+
+		        '<td>MSH-4:</td>'+
+		        '<td>'+d.MSH4+'</td>'+
+			'</tr>'+
+			'<tr>'+
+			    '<td>MSH-5:</td>'+
+			    '<td>'+d.MSH5+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>MSH-6:</td>'+
+				'<td>'+d.MSH6+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>Aggregate:</td>'+
+				'<td>'+d.Aggregate+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>Create TS:</td>'+
+				'<td>'+d.CreateTS+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>Delay:</td>'+
+				'<td>'+d.Delay+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>PV13 Location:</td>'+
+				'<td>'+d.PV13Location+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>Preserve Providers:</td>'+
+				'<td>'+d.PreserveProviders+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>Source Organization:</td>'+
+				'<td>'+d.sourceorganization+'</td>'+
+			'</tr>'+
+			'<tr>'+
+				'<td>Transformations:</td>'+
+				'<td>'+d.Transformations+'</td>'+
+			'</tr>'+
+			/*
+			'<tr>'+
+				'<td>Username:</td>'+
+				'<td>'+d.Username+'</td>'+
+			'</tr>'+
+			*/
+	    '</table>' +
+    '</div>';
+}
 	
-	// Highlights all the appropriate cells in a given row
-	function highlightSelected(td) {
-		td.parent('tr').find('td:not(.details-control)').each (function() {
-    		$(this).addClass('selected_row')
-    	});
-	}
+// Highlights all the appropriate cells in a given row
+function highlightSelected(td) {
+	td.parent('tr').find('td:not(.details-control)').each (function() {
+   		$(this).addClass('selected_row')
+   	});
+}
 	
-	function populateProviderTable(destination) {
-		// Attempt to destroy table so that if you're reloading instead of initially instantiating, it won't error
-		try {
-			table.destroy();
-			table, columns, a, b, result = "";
-		// We don't care if it fails
-		} catch (e){}
-		
-		$('#resize_wrapper_search').show("normal");
-		var data = {}
-		var payload = {
-			"destination":destination,
-   		};
-		data.token = {"token":getCookie("token")};
-		data.payload = payload;
-		
-		data = JSON.stringify(data);
-		// Datatable definition
-		table = $('#providerTable').DataTable( {
-			paging: false,
-			orderCellsTop: true,
-	        "oLanguage": {
-	        	"sSearch": "",
-	        	"sEmptyTable": "No Data found based on parameters"
-	        },
-	        "sDom": 'ift',
-	        //"sDom": '<"top"lpif>t<"bottom"><"clear">',
-			"ajax": {
-				"url":serverURL+"providers/" + data,
-				"dataSrc": ""
-			},
-			"columns": [
-	            { data: "NPI" },
-	            { data: "LastName" },
-	            { data: "FirstName" },
-			],
-			//"order": [[0, 'dec']],
-			"order": [[1, 'asc'],[2, 'asc']],
-			//"aDataSort": [ 1, 2 ],
-			"initComplete": function( settings, json ) {
-				$('#OrgInfoName').text(json[0].OrganizationName)
-				$('#OrgInfoType').text(json[0].Type)
-				$('#OrgInfoContact').text(json[0].Contact)
-				$('#OrgInfoEmail').text(json[0].Email)
-				$('#OrgInfoPhone').text(json[0].Phone)
-				$('#OrgInfoEMR').text(json[0].EMR)
-			}
-		});
-		$('.dataTables_wrapper .dataTables_filter input').attr("placeholder", '\uD83D\uDD0E Search All Columns');
-	}
+function populateProviderTable(destination) {
+	// Attempt to destroy table so that if you're reloading instead of initially instantiating, it won't error
+	try {
+		table.destroy();
+		table, columns, a, b, result = "";
+	// We don't care if it fails
+	} catch (e){}
 	
-	// When the page loads we populate the table with the routes data
-	$(document).ready(function() {
-		$('#closeDetail').click(function() {
-			$('#orgDetails').popup('hide');
-			$('tr td').removeClass('selected_row')
-		});
-		// Details popup init
-		$('#orgDetails').popup({
-			backgroundactive: true,
-		});
-		
-		$("#ddsource").change(function () {
-	        getDestinations($(this).val())
-	    });
-		
-		$('#routesTable tbody').on('click', 'td:not(.details-control)', function (e) {
-			e.preventDefault();
-	        e.stopPropagation();
-	        var destination = $(this).parent().find('td').eq(2).html()
-
-	        // Check the css if it's selected, if it is then the user is deselecting, and we close the dialog and end the function
-	        if ( $(this).hasClass('selected_row')) {
-	        	$('tr td').removeClass('selected_row')
-	        	// Close dialog
-	        	$('#orgDetails').popup('hide');
-	        	return;
-	        }
-	        // Otherwise remove styling from whatever is selected and make this the new selection, and continue with the query
-	        else {
-	            $('tr td').removeClass('selected_row')
-	            highlightSelected($(this))
-	            // Open dialog
-	            $('#orgDetails').popup('show');
-	        }
-			$('#orgDetails').popup('show')
-			populateProviderTable(destination);
-		});
-		
-		$("#searchColumn").on("click","#refreshRoutes",function() {
-			location.reload();	
-		});
-		
-		var data = {}
-		var payload = {
-   		};
-		data.payload = payload;
-		data = JSON.stringify(data);
-		
-		function getDestinations(source) {
-			var data = {}
-			if(source == "Any") {
-				data.source = ""
-			} else { data.source = source }
-			
-			data = JSON.stringify(data);
-			// Destination
-	   		$.ajax({
-	   			url:serverURL+"destinationroute/" + data,
-	   			type: "GET",
-	   		    contentType: "application/json",
-	   		    dataType: "text",
-	   			error: function(response) { 
-	   		        console.log(response);
-	   		    },
-	   			success: function(response) {
-	   				$('#dddestination').empty()
-					$('#dddestination').append('<option>Any</option>')
-	   				response = JSON.parse(response);
-	   				response.forEach(function(value) {
-						var option=$('<option></option>').text(value.OrganizationName);
-						$('#dddestination').append(option);
-					})
-	   			}
-	   		});
+	$('#resize_wrapper_search').show("normal");
+	var data = {}
+	var payload = {
+		"destination":destination,
+  		};
+	data.token = {"token":getCookie("token")};
+	data.payload = payload;
+	
+	data = JSON.stringify(data);
+	// Datatable definition
+	table = $('#providerTable').DataTable( {
+		paging: false,
+		orderCellsTop: true,
+        "oLanguage": {
+        	"sSearch": "",
+        	"sEmptyTable": "No Data found based on parameters"
+        },
+        "sDom": 'ift',
+        //"sDom": '<"top"lpif>t<"bottom"><"clear">',
+		"ajax": {
+			"url":serverURL+"providers/" + data,
+			"dataSrc": ""
+		},
+		"columns": [
+            { data: "NPI" },
+            { data: "LastName" },
+            { data: "FirstName" },
+		],
+		//"order": [[0, 'dec']],
+		"order": [[1, 'asc'],[2, 'asc']],
+		//"aDataSort": [ 1, 2 ],
+		"initComplete": function( settings, json ) {
+			$('#OrgInfoName').text(json[0].OrganizationName)
+			$('#OrgInfoType').text(json[0].Type)
+			$('#OrgInfoContact').text(json[0].Contact)
+			$('#OrgInfoEmail').text(json[0].Email)
+			$('#OrgInfoPhone').text(json[0].Phone)
+			$('#OrgInfoEMR').text(json[0].EMR)
 		}
-		// Source
+	});
+	$('.dataTables_wrapper .dataTables_filter input').attr("placeholder", '\uD83D\uDD0E Search All Columns');
+}
+	
+// When the page loads we populate the table with the routes data
+(function ($) {
+	// Removes duplicate wrappers
+	$('#detailColumnPopupRoute_wrapper').each(function (i) {
+	    $('[id="' + this.id + '"]').slice(1).remove();
+	});
+	// Details popup init
+	$('#detailColumnPopupRoute').popup({
+		backgroundactive: true,
+	});
+	
+	$('.closeDetail').click(function() {
+		$('#detailColumnPopupRoute').popup('hide');
+		$('tr td').removeClass('selected_row')
+	});
+	
+	$("#ddsource").change(function () {
+        getDestinations($(this).val())
+    });
+	
+	$('#dataTable tbody').on('click', 'td:not(.details-control)', function (e) {
+		e.preventDefault();
+        e.stopPropagation();
+        var destination = $(this).parent().find('td').eq(2).html()
+
+        // Check the css if it's selected, if it is then the user is deselecting, and we close the dialog and end the function
+        if ( $(this).hasClass('selected_row')) {
+        	$('tr td').removeClass('selected_row')
+        	// Close dialog
+        	$('#detailColumnPopupRoute').popup('hide');
+        	return;
+        }
+        // Otherwise remove styling from whatever is selected and make this the new selection, and continue with the query
+        else {
+            $('tr td').removeClass('selected_row')
+            highlightSelected($(this))
+            // Open dialog
+            $('#detailColumnPopupRoute').popup('show');
+        }
+		$('#detailColumnPopupRoute').popup('show')
+		populateProviderTable(destination);
+	});
+	
+	$("#refreshRoutes").on("click",function() {
+		location.reload();	
+	});
+	
+	var data = {}
+	var payload = {
+  		};
+	data.payload = payload;
+	data = JSON.stringify(data);
+	
+	function getDestinations(source) {
+		var data = {}
+		if(source == "Any") {
+			data.source = ""
+		} else { data.source = source }
+		
+		data = JSON.stringify(data);
+		// Destination
    		$.ajax({
-   			url:serverURL+"source/" + data,
-   			type: "GET",
-   		    contentType: "application/json",
-   		    dataType: "text",
-   			error: function(response) { 
-   		        console.log(response);
-   		    },
-	   		success: function(response) {
-	  			$('#ddsource').empty()
-				$('#ddsource').append('<option>Any</option>')
-				response = JSON.parse(response);
-				response.forEach(function(value) {
-					var option=$('<option></option>').text(value.sourceorganization);
-					$('#ddsource').append(option);
-				})
-				getDestinations($('#ddsource').val())
-			}
-   		});
-   		// EMR
-   		$.ajax({
-   			url:serverURL+"emr/" + data,
+   			url:serverURL+"destinationroute/" + data,
    			type: "GET",
    		    contentType: "application/json",
    		    dataType: "text",
@@ -356,282 +336,201 @@ var table;
    		        console.log(response);
    		    },
    			success: function(response) {
+   				$('#dddestination').empty()
+				$('#dddestination').append('<option>Any</option>')
    				response = JSON.parse(response);
    				response.forEach(function(value) {
-					var option=$('<option></option>').text(value.EMR);
-					$('#ddemr').append(option);
+					var option=$('<option></option>').text(value.OrganizationName);
+					$('#dddestination').append(option);
 				})
    			}
    		});
-		$('#resize_wrapper').show("normal");
-		var data = {}
-		data = JSON.stringify(data);
-		
-		columns = $('.contents').layout({
-		  	west: {
-		       resizable: false,
-		       slidable: false,
-		       togglerLength_closed: 200, //toggler height (length)
-		       togglerLength_open: 200,
-		       spacing_closed: 5, //toggler width
-		       spacing_open: 5,
-		  	},
-		  	center: {
-		    },
-		  });
-		
-		// Individual column search DOM definition
-		$('#routesTable tfoot th').each( function (i) {
-	        //var title = $('#searchTable thead th').eq( $(this).index() ).text();
-	        var title = "&#x1F50E;"
-	        //$('#searchForm').html( '<input type="text" placeholder="'+title+'" data-index="'+i+'"/><br>' );
-	    });
-		
-		var pageLength =  localStorage.getItem('routesTable_length') || 10;
-		
-	    var table = $('#routesTable').DataTable( {
-	    	paging: true,
-			orderCellsTop: true,
-			pageLength:parseInt(pageLength),
-	        "oLanguage": {
-	        	"sSearch": "",
-	        	"sEmptyTable": "No Data found based on parameters"
-	        },
-	        "sDom": '<"top"lpif>t<"bottom"><"clear">',
-	    	"ajax": {
-				"url":serverURL+"routes/"+data,
-				"dataSrc": "" },
-			// This section defines what data is being grabbed. The first element is the hidden section that is activated onclick.
-	        "columns": [
-	            {
-	                "className":      'details-control',
-	                "orderable":      false,
-	                "data":           null,
-	                "defaultContent": '<div class="trigger"><button class="hamburger hamburger--collapse" type="button">' +
-	                	  					'<span class="hamburger-box">' +
-	                							'<span class="hamburger-inner"></span>' +
-	              							'</span>' +
-	            						'</button></div>'
-	            },
-	            
-    			{ data: "Active" },
-    			{ data: "OrganizationName" },
-    			{ data: "SourceOID" },
-    			{ data: "ResultType" },
-    			{ data: "PatientClass" },
-    			{ data: "ResultStatus" },
-    			{ data: "ProviderRole" },
-    			{ data: "EMR" },
-    			{ data: "SendTo" },
-    			
-    			{ data: "MSH3" },
-    			{ data: "MSH4" },
-    			{ data: "MSH5" },
-    			{ data: "MSH6" },
-    			{ data: "Aggregate" },
-    			{ data: "CreateTS" },
-    			{ data: "Delay" },
-    			{ data: "PV13Location" },
-    			{ data: "PreserveProviders" },
-    			{ data: "sourceorganization" },
-    			{ data: "Transformations" },
-    			{ data: "Username" },
-    			
-	        ],
-	        "order": [[2, 'asc']],
-	     	// Conditional formatting for inactive routes to look grayed out
-			rowCallback: function(row, data, index) {
-			    if (data['Active'] == '0') {
-			    	$(row).find('td:not(.details-control)').each (function() {
-			    		$(this).addClass('inactive')
-			    	}); 
-			    }
-			}
-	    });
-	    
-	    $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) { 
-			alert("Search timed out, please try again.")
-		};
-	    
-	 	// Save the page length on change
-		$('#routesTable_length').on("change", 'select', function(){
-	        // for persistant data
-	        localStorage.setItem('routesTable_length',$(this).val());
-	        // just for the session
-	        sessionStorage.setItem('routesTable_length',$(this).val());
-	    });
-	 
-	    table.columns( '.detail' ).visible( false );
-	    $('.dataTables_wrapper .dataTables_filter input').attr("placeholder", '\uD83D\uDD0E Search All Columns');
-	 	
-	    // Left column search filtering
-	    $('#resultTypeInput').on('change', function(){
-	    	var search = [];
-	        $.each($('#resultTypeInput option:selected'), function(){
-	              search.push($(this).val());
-	        });
-	        search = search.join('|');
-	        table.column(4).search(search, true, false).draw(); 
-		})
-		$('#ddsource').on('change', function(){
-	        table.column(3).search($(this).val(), true, false).draw(); 
-		})
-		$('#dddestination').on('change', function(){
-	        table.column(2).search($(this).val(), true, false).draw(); 
-		})
-		$('#ddemr').on('change', function(){
-	        table.column(8).search($(this).val(), true, false).draw(); 
-		})
-	    
-	    $('.dataTables_scrollBody').css('height', ($(window).height() - 229));
-	    
-	    // Add event listener for opening and closing details
-	    $('#routesTable tbody').on('click', 'td.details-control', function () {
-	        var tr = $(this).closest('tr');
-	        var row = table.row( tr );
-	        var $hamburger = tr.find('.hamburger');
-	       
-	        if ( row.child.isShown() ) {
-	        	$hamburger.toggleClass("is-active");
-	        	$('div.slider', row.child()).slideUp( "fast", function () {
-		            // This row is already open - close it
-		            row.child.hide();
-		            tr.removeClass('shown');
-	        	});
-	        }
-	        else {
-	            // Open this row
-	            row.child( format(row.data()) ).show();
-	            $('div.slider', row.child()).slideDown("fast");
-	            tr.addClass('shown');
-	            $hamburger.toggleClass("is-active");
-	        }
-	    });
-	});
+	}
+	// Source
+  		$.ajax({
+  			url:serverURL+"source/" + data,
+  			type: "GET",
+  		    contentType: "application/json",
+  		    dataType: "text",
+  			error: function(response) { 
+  		        console.log(response);
+  		    },
+   		success: function(response) {
+  			$('#ddsource').empty()
+			$('#ddsource').append('<option>Any</option>')
+			response = JSON.parse(response);
+			response.forEach(function(value) {
+				var option=$('<option></option>').text(value.sourceorganization);
+				$('#ddsource').append(option);
+			})
+			getDestinations($('#ddsource').val())
+		}
+  		});
+  		// EMR
+  		$.ajax({
+  			url:serverURL+"emr/" + data,
+  			type: "GET",
+  		    contentType: "application/json",
+  		    dataType: "text",
+  			error: function(response) { 
+  		        console.log(response);
+  		    },
+  			success: function(response) {
+  				response = JSON.parse(response);
+  				response.forEach(function(value) {
+				var option=$('<option></option>').text(value.EMR);
+				$('#ddemr').append(option);
+			})
+  			}
+  		});
+	$('#resize_wrapper').show("normal");
+	var data = {}
+	data = JSON.stringify(data);
 	
+	columns = $('.contents').layout({
+	  	west: {
+	       resizable: false,
+	       slidable: false,
+	       togglerLength_closed: 200, //toggler height (length)
+	       togglerLength_open: 200,
+	       spacing_closed: 10, //toggler width
+	       spacing_open: 5,
+	  	},
+	  	center: {
+	    },
+	  });
+	
+	// Individual column search DOM definition
+	$('#dataTable tfoot th').each( function (i) {
+        //var title = $('#searchTable thead th').eq( $(this).index() ).text();
+        //var title = "&#x1F50E;"
+        //$('#searchForm').html( '<input type="text" placeholder="'+title+'" data-index="'+i+'"/><br>' );
+    });
+	
+	var pageLength =  localStorage.getItem('dataTable_length') || 10;
+	
+    var table = $('#dataTable').DataTable( {
+    	paging: true,
+		orderCellsTop: true,
+		pageLength:parseInt(pageLength),
+        "oLanguage": {
+        	"sSearch": "",
+        	"sEmptyTable": "No Data found based on parameters"
+        },
+        "sDom": '<"top"lpif>t<"bottom"><"clear">',
+    	"ajax": {
+			"url":serverURL+"routes/"+data,
+			"dataSrc": "" },
+		// This section defines what data is being grabbed. The first element is the hidden section that is activated onclick.
+        "columns": [
+            {
+                "className":      'details-control',
+                "orderable":      false,
+                "data":           null,
+                "defaultContent": '<div class="trigger"><button class="hamburger hamburger--collapse" type="button">' +
+                	  					'<span class="hamburger-box">' +
+                							'<span class="hamburger-inner"></span>' +
+              							'</span>' +
+            						'</button></div>'
+            },
+            
+   			{ data: "Active" },
+   			{ data: "OrganizationName" },
+   			{ data: "SourceOID" },
+   			{ data: "ResultType" },
+   			{ data: "PatientClass" },
+   			{ data: "ResultStatus" },
+   			{ data: "ProviderRole" },
+   			{ data: "EMR" },
+   			{ data: "SendTo" },
+   			
+   			{ data: "MSH3" },
+   			{ data: "MSH4" },
+   			{ data: "MSH5" },
+   			{ data: "MSH6" },
+   			{ data: "Aggregate" },
+   			{ data: "CreateTS" },
+   			{ data: "Delay" },
+   			{ data: "PV13Location" },
+   			{ data: "PreserveProviders" },
+   			{ data: "sourceorganization" },
+   			{ data: "Transformations" },
+   			{ data: "Username" },
+   			
+        ],
+        "order": [[2, 'asc']],
+     	// Conditional formatting for inactive routes to look grayed out
+		rowCallback: function(row, data, index) {
+		    if (data['Active'] == '0') {
+		    	$(row).find('td:not(.details-control)').each (function() {
+		    		$(this).addClass('inactive')
+		    	}); 
+		    }
+		}
+    });
+    
+    $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) { 
+		alert("Search timed out, please try again.")
+	};
+    
+ 	// Save the page length on change
+	$('#dataTable_length').on("change", 'select', function(){
+        // for persistant data
+        localStorage.setItem('dataTable_length',$(this).val());
+        // just for the session
+        sessionStorage.setItem('dataTable_length',$(this).val());
+    });
+ 
+    table.columns( '.detail' ).visible( false );
+    $('.dataTables_wrapper .dataTables_filter input').attr("placeholder", '\uD83D\uDD0E Search All Columns');
+ 	
+    // Left column search filtering
+    $('#resultTypeInput').on('change', function(){
+    	var search = [];
+        $.each($('#resultTypeInput option:selected'), function(){
+              search.push($(this).val());
+        });
+        search = search.join('|');
+        table.column(4).search(search, true, false).draw(); 
+	})
+	$('#ddsource').on('change', function(){
+        table.column(3).search($(this).val(), true, false).draw(); 
+	})
+	$('#dddestination').on('change', function(){
+        table.column(2).search($(this).val(), true, false).draw(); 
+	})
+	$('#ddemr').on('change', function(){
+        table.column(8).search($(this).val(), true, false).draw(); 
+	})
+    
+    $('.dataTables_scrollBody').css('height', ($(window).height() - 229));
+    
+    // Add event listener for opening and closing details
+    $('#dataTable tbody').on('click', 'td.details-control', function () {
+        var tr = $(this).closest('tr');
+        var row = table.row( tr );
+        var $hamburger = tr.find('.hamburger');
+       
+        if ( row.child.isShown() ) {
+        	$hamburger.toggleClass("is-active");
+        	$('div.slider', row.child()).slideUp( "fast", function () {
+	            // This row is already open - close it
+	            row.child.hide();
+	            tr.removeClass('shown');
+        	});
+        }
+        else {
+            // Open this row
+            row.child( format(row.data()) ).show();
+            $('div.slider', row.child()).slideDown("fast");
+            tr.addClass('shown');
+            $hamburger.toggleClass("is-active");
+        }
+    });
+})(jQuery);
 </script>
 
 <style>
-.inactive {
-	background-color: #e2e2e2;
-	color: gray;
-}
-.sorting_asc, .sorting_desc {
-	background-color: #5f5f5f;
-}
-th.sorting {
-	background-color: #5f5f5f;
-}
-#providerHeader {
-	float: left;
-	margin: 10px;
-}
-#orgInfoTable {
-	margin: 0 0 0 10px;
-}
-#providerTable {
-	border: 2px solid #373737;
-	border-radius: 5px;
-}
-.selected_row {
-    background-color: #5f5f5f !important;
-    color: white !important;
- }
-#closeDetail {
-	float: left;
-}
-h2 {
-	margin: auto;
-	text-align: center;
-}
-#orgDetails_background {
-	transition: all 0.3s 0.3s;
-}
-#orgDetails, #orgDetails_wrapper {
-	transition: all 0.3s ease-out;
-}
-#orgDetails {
-	top: 59px !important;
-	float: right;
-	height: calc(100vh - 59px);
-	width: 40%;
-	overflow: auto;
-	background-color: #dddddd;
-	color: black !important;
-	border-radius: 5px;
-}
-input {
-    height: 21px !important;
-}
-Label {
-	color: white;
-	font-size: 13px;
-}
-select {
-	width: 100%;
-	border-radius: 5px;
-}
-#routesTable_length label select {
-	width:165px; 
-	margin-top: 3px;
-}
-input[type=text] {
-    width: 100%;
-    margin: 2px 0 2px 0;
-    box-sizing: border-box;
-    border: 3px solid white;
-	border-radius: 5px;
-    -webkit-transition: 0.5s;
-    transition: 0.5s;
-    outline: none;
-}
-input[type=text]:focus {
-    border: 3px solid #555;
-}
-.contents {
-    position: relative;
- 	height: 100%;   
- 	width: 100%;
-   }
-#searchColumn {
-	background-color: #373737;
-	width: 15%;
-	overflow: hidden;
-}
-#tableColumn {
-	width: 75%;
-	height: 100%;    
-	float: left; 
-	padding: 3px; 
-	background-color: #373737
-}
-#resize_wrapper {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	display: none;
-}
-th,td {
-	background-color: rgba(255,255,255,0.2);
-	color: black;
-}
-#detailInvisible * {
-	display: none;	
-}
-th {
-	text-align: center;
-}
-
-thead {
-	th {
-		background-color: #55608f;
-	}
-}
-.dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_processing, .dataTables_wrapper .dataTables_paginate, .dataTables_wrapper .dataTables_paginate .paginate_button {
-	color: white !important;
-}
 #providerTable_info {
 	color: black !important;
 	margin: 0 0 0 5px;

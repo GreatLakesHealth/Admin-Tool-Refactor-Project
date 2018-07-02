@@ -1,16 +1,15 @@
-<div class="contents" id="containerSearch">
-	<div id="errorBox">
+<div class="contents">
+	<div class="errorBox">
 		<h2>No Details</h2>
 	</div>
-	<div id="thinkingBox"></div>
-	<div class="main-column ui-layout-west" id="searchColumn">
+	<div class="thinkingBox"></div>
+	<div class="main-column ui-layout-west">
 		<form action="#" method="post">
-			<div class="search messageParam" id="sourceParam">
+			<div class="search messageParam">
 				<Label>Source</Label><br>
 				<select id="ddsource" name="SourceOID"></select><br>
 				<Label>Destination</Label><br>
 				<select id="dddestination" name="Destination"></select><br>
-				
 				<Label>Result Type (Ctr + click)</Label><br>
 				<select name="ResultType" multiple size='7'>
 					<option value="">Any</option>
@@ -56,8 +55,8 @@
 			<div class="messageParam collapse" id="messageParamMiddle">
 				<input type="text" name="resultStatus" placeholder="Result Status"><br>
 				<input type="text" name="patientClass" placeholder="Patient Class"><br><br>
-				<button type="button" id="clearBtn" class="button-primary button-red">Clear Form</button>
-				<button type="button" id="cancelBtn" class="button-primary button-red">Cancel Search</button>
+				<button type="button" id="clearBtn" class="settings button-primary button-red">Clear Form</button>
+				<button type="button" id="cancelBtn" class="settings button-primary button-red">Cancel Search</button><br>
 				<label>Disable Detail Event</label><br>
 				<label class="switch">
 					<input id="detailEvent" type="checkbox">
@@ -70,9 +69,9 @@
 			</div>
 		</form>
 	</div>
-	<div class="main-column ui-layout-center" id="tableColumn">
+	<div class="main-column ui-layout-center">
 		<div id="resize_wrapper_search"> 
-			<table id="searchTable" class="display compact wrap" cellspacing="0" width="100%">
+			<table id="dataTable" class="display compact wrap" cellspacing="0" width="100%">
 			    <thead>
 			        <tr>
 			        	<th>Details</th>
@@ -130,7 +129,7 @@
 			    </tbody>
 			    <tfoot>
 		            <tr>
-		            	<th id="detailInvisible">Details</th>
+		            	<th class="detailInvisible">Details</th>
 			        	<th>Patient Name</th>		        	
 			        	<th>Patient DOB</th>
 			        	<th>Result Type</th>
@@ -158,19 +157,15 @@
 			</table>
 		</div>
 	</div>
-	<div class="main-column" id="detailColumn">
-		<div id="detailsContents">
-			<button id="closeDetail" class="button-primary">Close</button>
+	<div id="detailColumnPopupSearch" class="detailColumn">
+		<div class="detailsContents">
+			<button class="button-primary closeDetail">Close</button>
 			<br>
 			<h2 id="messageDetailsHeader"></h2>
-			<table id="detailTable" style="width:100%">
+			<table class="detailTable" style="width:100%">
 			  <tr id="conDetailsBlock">
 				<th>
-					<!--<label class="switch">
-					<input id="ConToggle" type="checkbox">
-					<span class="sliderCheckbox"></span>
-				</label><br>-->
-				<label>Connection Details</label>
+					<label>Connection Details</label>
 				</th>
 				<td>
 					<table id="conDetails">
@@ -353,6 +348,14 @@
 	}
 	
 	(function ($) {
+		// Removes duplicate wrappers
+		$('#detailColumnPopupSearch_wrapper').each(function (i) {
+		    $('[id="' + this.id + '"]').slice(1).remove();
+		});
+		// Details popup init
+		$('#detailColumnPopupSearch').popup({
+			backgroundactive: true,
+		});
 		$('#clearBtn').click(function() {
 			$('form').trigger("reset");
 		});
@@ -394,8 +397,8 @@
 			easyPDF($('#GLHCCommonHL7Result').html(), "PDF from HL7")
 		});
 
-		$('#closeDetail').click(function() {
-			$('#detailColumn').popup('hide');
+		$('.closeDetail').click(function() {
+			$('#detailColumnPopupSearch').popup('hide');
 			$('tr td').removeClass('selected_row')
 		});
 		
@@ -404,17 +407,17 @@
 		});
 		
 		// Difference toggle
-		$('#detailTable').on('click', '#viewDifferenceBtn', function (e) {
+		$('.detailTable').on('click', '#viewDifferenceBtn', function (e) {
    			$('#difference').append(changed())
 		});
 		// Pretty/Raw toggles
-		$('#detailTable').on('click', '#originalToggle', function (e) {
+		$('.detailTable').on('click', '#originalToggle', function (e) {
 			$('#originalRaw, #OriginalHL7').toggle()
 		});
-		$('#detailTable').on('click', '#GLHCCommonToggle', function (e) {
+		$('.detailTable').on('click', '#GLHCCommonToggle', function (e) {
 			$('#commonRaw, #GLHCCommonHL7').toggle()
 		});
-		$('#detailTable').on('click', '#DeliveredToggle', function (e) {
+		$('.detailTable').on('click', '#DeliveredToggle', function (e) {
 			$('#deliveredRaw, #DeliveredHL7').toggle()
 		});
 		// Event handler for header clicking to reveal pretty hl7 details
@@ -432,10 +435,6 @@
 			$(this).nextUntil('tr.header').css('display', function(i,v) {
 			    return this.style.display === 'none' ? 'table-row' : 'none';
 			});
-		});
-		// Details popup init
-		$('#detailColumn').popup({
-			backgroundactive: true,
 		});
 	
 		$("#ddsource").change(function () {
@@ -653,10 +652,10 @@
 		}
 		data = JSON.stringify(data);
 
-		var pageLength =  localStorage.getItem('searchTable_length') || 10;
+		var pageLength =  localStorage.getItem('dataTable_length') || 10;
 		
 		// Datatable definition
-		table = $('#searchTable').DataTable( {
+		table = $('#dataTable').DataTable( {
 			paging: true,
 			orderCellsTop: true,
 			pageLength:parseInt(pageLength),
@@ -727,18 +726,18 @@
 			rowCallback: function(row, data, index) {
 			    if (data['RouteID'] == '') {
 			    	$(row).find('td:not(.details-control)').each (function() {
-			    		$(this).addClass('notDelivered')
+			    		$(this).addClass('inactive')
 			    	}); 
 			    }
 			}
 		});
 		
 		// Save the page length on change
-		$('#searchTable_length').on("change", 'select', function(){
+		$('#dataTable_length').on("change", 'select', function(){
 	        // for persistant data
-	        localStorage.setItem('searchTable_length',$(this).val());
+	        localStorage.setItem('dataTable_length',$(this).val());
 	        // just for the session
-	        sessionStorage.setItem('searchTable_length',$(this).val());
+	        sessionStorage.setItem('dataTable_length',$(this).val());
 	    });
 		
 		table.columns( '.detail' ).visible( false );
@@ -747,7 +746,7 @@
 		//table.columns.adjust().draw();
 		// Individual column search DOM definition. We add the headers to an array for future use. This is because when the
 		// datatable is refreshed, the header values are undefined for some reason. My hotfix is saving their values in an unmutable array
-		$('#searchTable tfoot th').each( function (i) {
+		$('#dataTable tfoot th').each( function (i) {
 			var headerTitle;
 			var title = "&#x1F50E;"
 			// Check if the array is full
@@ -780,7 +779,7 @@
 	});
 	
 	// Controls the visibility of the details section of each row
-	$('#searchTable tbody').on('click', 'td.details-control', function (e) {	
+	$('#dataTable tbody').on('click', 'td.details-control', function (e) {	
 		e.preventDefault();
 		e.stopPropagation();
 		var tr = $(this).closest('tr');
@@ -813,7 +812,7 @@
 	
 	// Our selector excludes the expand elements
 	// This adds data to the details column containing information from a new ajax call based on data from the row
-	$('#searchTable tbody').on('click', 'td:not(.details-control)', function (e) {
+	$('#dataTable tbody').on('click', 'td:not(.details-control)', function (e) {
 
 		if(!detailEvent) return;
 		// Make sure we're in the right element
@@ -848,12 +847,12 @@
         if ( $(this).hasClass('selected_row')) {
         	$('tr td').removeClass('selected_row')
         	// Close dialog
-        	$('#detailColumn').popup('hide');
+        	$('#detailColumnPopupSearch').popup('hide');
         	return;
         }
         // Otherwise remove styling from whatever is selected and make this the new selection, and continue with the query
         else {
-        	$("#thinkingBox").show()
+        	$(".thinkingBox").show()
             $('tr td').removeClass('selected_row')
             highlightSelected($(this))
         }
@@ -942,21 +941,19 @@
 					}
 					catch(e) {}
 					// Open dialog
-					$('#detailColumn').popup('show');
-					$('#detailColumn').resizable();
-					
+					$('#detailColumnPopupSearch').popup('show');					
    				}
    				catch(e) {
-   					$("#thinkingBox").fadeOut("slow");
-   					$('#detailColumn').popup('hide');
-   					$("#errorBox").fadeIn("slow", function() {
-   						$("#errorBox").fadeOut("slow");
+   					$(".thinkingBox").fadeOut("slow");
+   					$('#detailColumnPopupSearch').popup('hide');
+   					$(".errorBox").fadeIn("slow", function() {
+   						$(".errorBox").fadeOut("slow");
    					});
    					$('tr td').removeClass('selected_row')
    				}
    			}
    		}).done(function() {
-   			$("#thinkingBox").fadeOut("slow");
+   			$(".thinkingBox").fadeOut("slow");
    		});
    		//table.columns.adjust().draw();
 	});
@@ -1000,84 +997,12 @@
 	.hiddenLogic {
 		display: none;
 	}
-	select {
-		border-radius: 5px;
-	}
-	#closeDetail {
-		float: left;
-	}
-	#errorBox {
-		display: none;
-		position: relative;
-		background: #DD5F13;
-		width: 300px;
-		border-radius: 6px;
-		border: #DD5F13 4px solid;
-		top: 18px !important;
-  		margin-left: auto;
-  		margin-right: auto;
-  		z-index: 1;
-	}
-	#thinkingBox {
-		display: none;
-		position: relative;
-		
-		top: 18px !important;
-  		margin-left: auto;
-  		margin-right: auto;
-  		z-index: 1;
-  		
-	    border: 16px solid #f3f3f3; /* Light grey */
-	    border-top: 16px solid #70A059; /* Blue */
-	    border-radius: 50%;
-	    width: 60px;
-	    height: 60px;
-	    animation: spin 2s linear infinite;
-	}
-
-	@keyframes spin {
-	    0% { transform: rotate(0deg); }
-	    100% { transform: rotate(360deg); }
-	}
 	
-	#clearBtn, #cancelBtn {
-		width: 100%;
-		margin: 2.5px 5px 5px 0;
-	}
-	
-	#detailColumn_background {
-	  transition: all 0.3s 0.3s;
-	}
-	#detailColumn, #detailColumn_wrapper {
-	  transition: all 0.3s ease-out;
-	}
-	#detailColumn {
-	  top: 59px !important;
-	  float: right;
-	  height: calc(100vh - 59px);
-	  width: 750px;
-	  overflow: auto;
-	}
-	#detailsContents h2 {
-		color: black;
-		border-radius: 5px;
-	}
-    #detailColumn th, #detailColumn th * {
-    	color: black;
-    	text-align: center;
-    }
-	#searchTable {
-		table-layout: fixed;
-  		word-wrap:break-word;
-	}
 	.selected_row {
 	    background-color: #5f5f5f !important;
 	    color: white !important;
 	 }
-	.notDelivered {
-	  background-color: #e2e2e2;
-	  color: gray;
-	}
+
 	.ui-dialog .ui-dialog-buttonpane {
 		background-color: #373737;
 		margin-top: 0;
@@ -1126,21 +1051,6 @@
 	    left: 50%;
 	    transform: translateX(-50%) translateY(-50%);
 	}
-	#detailsContents {
-		background-color: #dddddd;
-		border-radius: 5px;
-	}
-	#detailTable th {
-		vertical-align:top;
-		width: 15%;
-	}
-	#detailTable tbody > tr > td {
-		text-align: left;
-		background-color: white;
-    	border-style: solid;
-    	border-color: #999999;
-    	border-radius: 5px;
-	}
 	.nowrapDetail {
 		white-space: nowrap;
 	}
@@ -1155,32 +1065,9 @@
 		content: "\21E8";
 		font-size: 30px;
 	}
-	Label {
-		color: white;
-		font-size: 13px;
-	}
-	select {
-		width: 100%;
-	}
-	#searchTable_length label select {
-		width:165px; 
-	}
+	
 	#ui-datepicker-div {
 		left: 220px !important;
-	}
-	h2 {
-		margin: auto;
-		color: white;
-		text-align: center;
-	}
-	.clear {
-		clear:both;
-	}
-	.wrapword {
-		white-space: pre-line;
-		height: 200px;
-		width: 640px;
-		overflow: scroll;
 	}
 	#GLHCCommonHL7Table, #DeliveredHL7Table, #OriginalHL7Table {
 		height: 200px;
@@ -1189,57 +1076,20 @@
 	#DeliveredHL7Result, #GLHCCommonHL7Result, #OriginalHL7Result, #difference {
 		display: inline-block;
 	}
-	.dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_processing, .dataTables_wrapper .dataTables_paginate,
-	.dataTables_wrapper .dataTables_paginate .paginate_button {
-		color: white !important;	
-	}
-	.dataTables_wrapper {
-        width: 100%;
-        margin: 0 auto;	
-    }
-    #searchColumn {
-	    background-color: #373737;
+    
 	
-    }
-    #tableColumn {
-	    width: 75%;
-	    height: 100%;    
-	    float: left; 
-	    padding: 3px; 
-	    background-color: #373737
-    }
-    .contents {
-	    position: relative;
-	 	height: 100%;   
-	 	width: 100%;
-    }
-	.main-column {
-		float: left;
-		height: 100%;
-	}
+
 	#hideDetailsBtn {
 		height: 40px !important;	
 	}
-	th,td {
-		background-color: rgba(255,255,255,0.2);
-		color: black;
-	}
-	#detailInvisible * {
-		display: none;	
-	}
+	
 	#search.button-primary {
 		width: 100%;
 		height: 40px;
 		margin: 0;
 	}
-	.dataTables_wrapper .dataTables_filter {
-		font-size: 18px;
-	}
-	form {
-		display: grid;
-  		grid-template-columns: 175px;
-  		justify-content: center;
-	}
+	
+	
 	.ui-datepicker {
 		background-color: white;
 	}
@@ -1251,34 +1101,10 @@
 	  filter: Alpha(Opacity=50);
 	  background-color: black;
 	}
-	tr.shown td.details-control {
-	    background-color: #70A059;
-	}
-	#resize_wrapper_search {
-		display: none;
-		width: 100%;
-	}
-	input, label {
-	    display: inline;
-	}
-	.messageParam {
-		float: left;
-		margin: 5px 0;
-	}
-	input[type=text] {
-	    width: 100%;
-	    margin: 2px 0 2px 0;
-	    box-sizing: border-box;
-	    border: 3px solid white;
-	    border-radius: 5px;
-	    -webkit-transition: 0.5s;
-	    transition: 0.5s;
-	    outline: none;
-	}
-
-	input[type=text]:focus {
-	    border: 3px solid #555;
-	}
+	
+	
+	
+	
 	
 	.hl7ParseTable tr.header {
 	    display: table-row;
