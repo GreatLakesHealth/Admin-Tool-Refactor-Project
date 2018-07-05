@@ -110,11 +110,17 @@ button:focus {
 /* CLASS DEFINITIONS */
 /**************************************************************/
 
+.detail {
+	display: none;
+}
+.detailTable {
+	width: 100%;
+}
 .detailTable th {
 	vertical-align:top;
 	width: 15%;
 }
-.detailTable tbody > tr > td {
+.detailTable tbody > tr > td:last-child {
 	text-align: left;
 	background-color: white;
    	border-style: solid;

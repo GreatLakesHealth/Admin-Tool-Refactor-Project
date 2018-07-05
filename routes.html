@@ -28,61 +28,7 @@
 	<div class="main-column ui-layout-center">
 		<div id="resize_wrapper">
 			<table id="dataTable" class="display compact wrap" cellspacing="0" width="100%">
-			    <thead>
-			        <tr>
-			        	<th id="detailCol">Details</th>
-			        	<th>Active</th>
-			        	<th>Destination</th>
-			        	<th>Source</th>
-			        	<th>Result<br>Type</th>
-				        <th>Patient<br>Class</th>
-				        <th>Result<br>Status</th>
-				        <th>Provider<br>Role</th>
-				        <th>EMR</th>
-				        <th>Delivery<br>Operation</th>
-   
-			        	<th class="detail">MSH3</th>
-				        <th class="detail">MSH4</th>
-				        <th class="detail">MSH5</th>
-				        <th class="detail">MSH6</th>
-				        <th class="detail">Aggregate</th>
-				        <th class="detail">CreateTS</th>
-				        <th class="detail">Delay</th>
-				        <th class="detail">PV13Location</th>
-				        <th class="detail">PreserveProviders</th>
-				        <th class="detail">Source<br>Organization</th>
-				        <th class="detail">Transformations</th>
-				        <th class="detail">Username</th>
-				  
-			        </tr>
-			    </thead>
-			    <tbody>
-			        <tr>
-			        	<td></td>
-			            <td></td>
-			            <td class="destination"></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-						<td></td>
-						<td></td>
-			            <td></td>
-			            <td></td>
-			            
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-						<td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			        </tr>
-			    </tbody>
+			     
 			</table>
 		</div>
 	</div>
@@ -98,7 +44,7 @@
 						<label>Route Details</label>
 					</th>
 					<td>
-						<table="breakoutDetailsTable">
+						<table id="breakoutDetailsTable">
 							<tr>
 								<td>Name: </td>
 								<td id="OrgInfoName"></td>
@@ -149,6 +95,29 @@
 </div>
 <script>
 var table;
+var dynamicColumns = {
+	"Active":0,        
+	"OrganizationName":[0,"Organization Name"], 
+	"SourceOID":[0,"Source OID"],      
+	"ResultType":[0,"Result Type"],     
+	"PatientClass":[0,"Patient Class"],   
+	"ResultStatus":[0,"Result Status"],   
+	"ProviderRole":[0,"Provider Role"],   
+	"EMR":0,           
+	"SendTo":[0,"Delivery Operation"],                     
+	"MSH3":[1],          
+	"MSH4":[1],          
+	"MSH5":[1],          
+	"MSH6":[1],          
+	"Aggregate":[1],     
+	"CreateTS":[1,"Create TS"],       
+	"Delay":[1],      
+	"PV13Location":[1,"PV13 Location"],  
+	"PreserveProviders":[1,"Preserve Providers"], 
+	"sourceorganization":[1,"Source Organization"], 
+	"Transformations":[1],
+	"Username":[1]
+}
 /* Formatting function for row details - modify as you need */
 function format ( d ) {
     // `d` is the original data object for the row
@@ -422,42 +391,7 @@ function populateProviderTable(destination) {
 			"url":serverURL+"routes/"+data,
 			"dataSrc": "" },
 		// This section defines what data is being grabbed. The first element is the hidden section that is activated onclick.
-        "columns": [
-            {
-                "className":      'details-control',
-                "orderable":      false,
-                "data":           null,
-                "defaultContent": '<div class="trigger"><button class="hamburger hamburger--collapse" type="button">' +
-                	  					'<span class="hamburger-box">' +
-                							'<span class="hamburger-inner"></span>' +
-              							'</span>' +
-            						'</button></div>'
-            },
-            
-   			{ data: "Active" },
-   			{ data: "OrganizationName" },
-   			{ data: "SourceOID" },
-   			{ data: "ResultType" },
-   			{ data: "PatientClass" },
-   			{ data: "ResultStatus" },
-   			{ data: "ProviderRole" },
-   			{ data: "EMR" },
-   			{ data: "SendTo" },
-   			
-   			{ data: "MSH3" },
-   			{ data: "MSH4" },
-   			{ data: "MSH5" },
-   			{ data: "MSH6" },
-   			{ data: "Aggregate" },
-   			{ data: "CreateTS" },
-   			{ data: "Delay" },
-   			{ data: "PV13Location" },
-   			{ data: "PreserveProviders" },
-   			{ data: "sourceorganization" },
-   			{ data: "Transformations" },
-   			{ data: "Username" },
-   			
-        ],
+        "columns": buildDynamicDataTable($('#dataTable'), dynamicColumns),
         "order": [[2, 'asc']],
      	// Conditional formatting for inactive routes to look grayed out
 		rowCallback: function(row, data, index) {
@@ -468,6 +402,7 @@ function populateProviderTable(destination) {
 		    }
 		}
     });
+    table.columns( '.detail' ).visible( false );
     
     $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) { 
 		alert("Search timed out, please try again.")
@@ -481,7 +416,6 @@ function populateProviderTable(destination) {
         sessionStorage.setItem('dataTable_length',$(this).val());
     });
  
-    table.columns( '.detail' ).visible( false );
     $('.dataTables_wrapper .dataTables_filter input').attr("placeholder", '\uD83D\uDD0E Search All Columns');
  	
     // Left column search filtering

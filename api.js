@@ -39,7 +39,7 @@ function setCookie(cname, cvalue, exdays) {
 }
 
 // Any nav links just navigate viewer to their href via ajax
-$(document).on("click", "#nav button", function (e) {
+$(document).on("click", ".nav button", function (e) {
 	e.preventDefault();
 	//($(this).attr('href') != "home.html") {
 		var pageRef = $(this).attr('href');
@@ -57,12 +57,82 @@ $(document).on("click", "#logout", function (e) {
 
 // Function that uses AJAX shorthand for dumping html contents into element
 function navigate(pageRef) {
-	$('#detailColumn').popup('hide');
-	$('#orgDetails').popup('hide');
+	$('#detailColumnPopupSearch').popup('hide');
+	$('#detailColumnPopupRoute').popup('hide');
 	try {
 		table.settings()[0].jqXHR.abort()
 		ajaxDetail.settings()[0].jqXHR.abort()
 	}
 	catch(e){}
-	$('#content').load(pageRef);
+	$('.content').load(pageRef);
+}
+
+function buildDynamicDataTable(table, list) {
+	var ths = ""
+	var dict = list
+	for (var key in dict){
+		if (typeof list[key][1] == 'undefined') {
+			if(list[key][0] > 0) { ths += "<th class='detail'>"+key+"</th>" }
+			else { ths += "<th>"+key+"</th>" }
+			continue
+		}
+		if(list[key][0] > 0) { ths += "<th class='detail'>"+list[key][1]+"</th>" }
+		else { ths += "<th>"+list[key][1]+"</th>" }
+	}
+	table.append("<thead></thead>").append("<tr></tr>").append(ths)
+	/*
+	<thead>
+    <tr>
+    	<th id="detailCol">Details</th>
+    	<th>Active</th>
+    	<th>Destination</th>
+    	<th>Source</th>
+    	<th>Result<br>Type</th>
+        <th>Patient<br>Class</th>
+        <th>Result<br>Status</th>
+        <th>Provider<br>Role</th>
+        <th>EMR</th>
+        <th>Delivery<br>Operation</th>
+
+    	<th class="detail">MSH3</th>
+        <th class="detail">MSH4</th>
+        <th class="detail">MSH5</th>
+        <th class="detail">MSH6</th>
+        <th class="detail">Aggregate</th>
+        <th class="detail">CreateTS</th>
+        <th class="detail">Delay</th>
+        <th class="detail">PV13Location</th>
+        <th class="detail">PreserveProviders</th>
+        <th class="detail">Source<br>Organization</th>
+        <th class="detail">Transformations</th>
+        <th class="detail">Username</th>
+    </tr>
+</thead>
+*/
+	
+	// Programatic generation of datatable columns
+	var columns = '[{"column":['
+	for(var key in list) {
+	    columns += '{data:"'+key+'"},'
+	}
+	columns = columns.slice(0, -1)
+	columns += ']}]'
+	columns = eval(columns)
+	
+	var customColumn = {
+        "className":      'details-control',
+        "orderable":      false,
+        "data":           null,
+        "defaultContent": '<div class="trigger"><button class="hamburger hamburger--collapse" type="button">' +
+        	  					'<span class="hamburger-box">' +
+        							'<span class="hamburger-inner"></span>' +
+      							'</span>' +
+    						'</button></div>'
+    }
+	var dynamicColumns = []
+	dynamicColumns.push(customColumn)
+	columns[0].column.forEach(function(i) {
+		dynamicColumns.push(i)
+	})
+	return dynamicColumns
 }
