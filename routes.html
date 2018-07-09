@@ -95,6 +95,7 @@
 </div>
 <script>
 var table;
+var footers = [];
 var dynamicColumns = {
 	"Active":0,        
 	"OrganizationName":[0,"Organization Name"], 
@@ -255,6 +256,16 @@ function populateProviderTable(destination) {
         getDestinations($(this).val())
     });
 	
+	// Column sorting, stops footer from triggering as well
+	var asc = true
+	$('#dataTable').on("click", 'th:not(tfoot tr th)', function(event) {
+		var parent = $(event.target).parent()
+	    var myIndex = $(parent).prevAll().length;
+		if(asc) table.order([myIndex, "asc"]).draw()
+		else table.order([myIndex, "dec"]).draw()
+		asc = !asc
+	})
+	
 	$('#dataTable tbody').on('click', 'td:not(.details-control)', function (e) {
 		e.preventDefault();
         e.stopPropagation();
@@ -402,12 +413,40 @@ function populateProviderTable(destination) {
 		    }
 		}
     });
-    table.columns( '.detail' ).visible( false );
     
+    hideColumns(table, dynamicColumns)
+    
+    // Individual column search DOM definition. We add the headers to an array for future use. This is because when the
+	// datatable is refreshed, the header values are undefined for some reason. My hotfix is saving their values in an unmutable array
+	$('#dataTable tfoot th').each( function (i) {
+		var headerTitle;
+		var title = "&#x1F50E;"
+		// Check if the array is full
+		if (footers.length != 11) {
+			headerTitle = $(this).closest('tr').find('th').eq(i).text();
+			footers.push(headerTitle)
+		}
+		// If not then keep adding to it
+		else {
+			headerTitle = footers[i]
+		}
+		// Format for each search box
+        $(this).html( '<input type="text" placeholder="'+title+' '+headerTitle+'" data-index="'+i+'" />' );
+    });
+	// Disallow future changes to the array
+	Object.freeze(footers);
+	// Event handling for search columns
+	$( table.table().container() ).on( 'keyup', 'tfoot input', function () {
+        table
+            .column( $(this).data('index') )
+            .search( this.value )
+            .draw();
+    });
+	
     $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) { 
 		alert("Search timed out, please try again.")
 	};
-    
+
  	// Save the page length on change
 	$('#dataTable_length').on("change", 'select', function(){
         // for persistant data
@@ -440,7 +479,7 @@ function populateProviderTable(destination) {
     $('.dataTables_scrollBody').css('height', ($(window).height() - 229));
     
     // Add event listener for opening and closing details
-    $('#dataTable tbody').on('click', 'td.details-control', function () {
+    $('#dataTable').on('click', 'td.details-control', function () {
         var tr = $(this).closest('tr');
         var row = table.row( tr );
         var $hamburger = tr.find('.hamburger');

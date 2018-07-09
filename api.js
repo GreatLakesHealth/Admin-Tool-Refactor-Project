@@ -67,48 +67,47 @@ function navigate(pageRef) {
 	$('.content').load(pageRef);
 }
 
+// Handles hiding columns
+function hideColumns(table, dynamicColumns) {
+    var firstFind = 1;
+    for(var key in dynamicColumns) {
+    	if(dynamicColumns[key][0] > 0) break
+    	else firstFind++;
+    }
+    var leftOver = Object.keys(dynamicColumns).length + 1 - firstFind
+    var range = [...Array(leftOver).keys()].map(i => i + firstFind)
+    table.columns(range).visible( false );
+}
+
 function buildDynamicDataTable(table, list) {
-	var ths = ""
+	var hiddenClass = "detail"
+	var ths = "<th>Details</th>"
 	var dict = list
+	// Build headers
 	for (var key in dict){
 		if (typeof list[key][1] == 'undefined') {
-			if(list[key][0] > 0) { ths += "<th class='detail'>"+key+"</th>" }
+			if(list[key][0] > 0) { ths += '<th class="'+hiddenClass+'">'+key+'</th>' }
 			else { ths += "<th>"+key+"</th>" }
 			continue
 		}
-		if(list[key][0] > 0) { ths += "<th class='detail'>"+list[key][1]+"</th>" }
+		if(list[key][0] > 0) { ths += '<th class="'+hiddenClass+'">'+list[key][1]+'</th>' }
 		else { ths += "<th>"+list[key][1]+"</th>" }
 	}
+	// Build footers
+	var foot = "<tfoot><tr><th class='detailInvisible'></th>"
+	for (var key in dict){
+		if (typeof list[key][1] == 'undefined') {
+			if(list[key][0] > 0) { foot += '<th class="'+hiddenClass+'">'+key+'</th>' }
+			else { foot += "<th>"+key+"</th>" }
+			continue
+		}
+		if(list[key][0] > 0) { foot += '<th class="'+hiddenClass+'">'+list[key][1]+'</th>' }
+		else { foot += "<th>"+list[key][1]+"</th>" }
+	}
+	foot += "</tr></tfoot>"
+		
 	table.append("<thead></thead>").append("<tr></tr>").append(ths)
-	/*
-	<thead>
-    <tr>
-    	<th id="detailCol">Details</th>
-    	<th>Active</th>
-    	<th>Destination</th>
-    	<th>Source</th>
-    	<th>Result<br>Type</th>
-        <th>Patient<br>Class</th>
-        <th>Result<br>Status</th>
-        <th>Provider<br>Role</th>
-        <th>EMR</th>
-        <th>Delivery<br>Operation</th>
-
-    	<th class="detail">MSH3</th>
-        <th class="detail">MSH4</th>
-        <th class="detail">MSH5</th>
-        <th class="detail">MSH6</th>
-        <th class="detail">Aggregate</th>
-        <th class="detail">CreateTS</th>
-        <th class="detail">Delay</th>
-        <th class="detail">PV13Location</th>
-        <th class="detail">PreserveProviders</th>
-        <th class="detail">Source<br>Organization</th>
-        <th class="detail">Transformations</th>
-        <th class="detail">Username</th>
-    </tr>
-</thead>
-*/
+	table.append(foot)
 	
 	// Programatic generation of datatable columns
 	var columns = '[{"column":['

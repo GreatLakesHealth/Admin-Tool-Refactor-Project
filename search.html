@@ -72,88 +72,6 @@
 	<div class="main-column ui-layout-center">
 		<div id="resize_wrapper_search"> 
 			<table id="dataTable" class="display compact wrap" cellspacing="0" width="100%">
-			    <thead>
-			        <tr>
-			        	<th>Details</th>
-			        	<th>Patient Name</th>		        	
-			        	<th>Patient DOB</th>
-			        	<th>Result Type</th>
-			        	<th>Report</th>
-			        	<th>Status</th>
-			        	<th>Class</th>
-			        	<th>Provider</th>
-			        	<th>Processed DateTime</th>
-			        	<th>Destination</th>
-			        	<th>Source</th>
-
-				        <th class="detail">Patient<br>First<br>Name</th>
-				        <th class="detail">Route ID</th>
-				        <th class="detail">Message Control ID</th>
-			        	<th class="detail">Message DateTime</th>
-				        <th class="detail">MRN</th>
-				        <th class="detail">Accession ID</th>
-				        <th class="detail">OBRLOINC Description</th>
-				        <th class="detail">OBR Universal Service ID</th>
-				        <th class="detail">Document Type</th>
-				        <th class="detail">Session ID</th>
-				        <th class="detail">Delay Entry</th>
-				        <th class="detail">Destination Status</th>
-			        </tr>
-			    </thead>
-			    <tbody>
-			        <tr>
-			        	<td></td>
-			        	<td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-						<td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-						<td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			            <td></td>
-			        </tr>
-			    </tbody>
-			    <tfoot>
-		            <tr>
-		            	<th class="detailInvisible">Details</th>
-			        	<th>Patient Name</th>		        	
-			        	<th>Patient DOB</th>
-			        	<th>Result Type</th>
-			        	<th>Report</th>
-			        	<th>Result Status</th>
-			        	<th>Patient Class</th>
-			        	<th>Provider</th>
-			        	<th>Processed DateTime</th>
-			        	<th>Destination</th>
-			        	<th>Source</th>
-				        
-				        <th>Route ID</th>
-				        <th>Message Control ID</th>
-			        	<th>Message DateTime</th>
-				        <th>MRN</th>
-				        <th>Accession ID</th>
-				        <th>OBRLOINC Description</th>
-				        <th>OBR Universal Service ID</th>
-				        <th>Document Type</th>
-				        <th>Session ID</th>
-				        <th>Delay Entry</th>
-				        <th>Destination Status</th>
-		            </tr>
-	        	</tfoot>
 			</table>
 		</div>
 	</div>
@@ -162,7 +80,7 @@
 			<button class="button-primary closeDetail">Close</button>
 			<br>
 			<h2 id="messageDetailsHeader"></h2>
-			<table class="detailTable" style="width:100%">
+			<table class="detailTable">
 			  <tr id="conDetailsBlock">
 				<th>
 					<label>Connection Details</label>
@@ -294,6 +212,29 @@
 	var footers = [];
 	var detailEvent = true;
 	var area_height;
+	var dynamicColumns = {
+			"PatientFullName":[0,"Patient Name"],        
+			"PatientDOB":[0,"Patient DOB"], 
+			"ResultType":[0,"Result Type"],      
+			"Report":[0],     
+			"ResultStatus":[0,"Result Status"],   
+			"PatientClass":[0,"PatientClass"],   
+			"ProviderName":[0,"Provider"],   
+			"ProcessedDateTime":[0,"Processed Date Time"],           
+			"Destination":[0],                     
+			"SourceOID":[0, "Source"],          
+			"RouteID":[1],          
+			"MessageControlID":[1],          
+			"MessageDateTime":[1],          
+			"MRN":[1],     
+			"AccessionID":[1],       
+			"OBRLOINCDescription":[1],      
+			"OBRUniversalServiceID":[1],  
+			"DocumentType":[1], 
+			"SessionId":[1], 
+			"DelayEntry":[1],
+			"DestinationStatus":[1]
+		}
 	// Handling of hidden data that is triggered on each row by user
 	function format ( d ) {
 	    // `d` is the original data object for the row
@@ -405,6 +346,16 @@
 		$('#detailEvent').on('click', function (e) {
 			detailEvent = !detailEvent
 		});
+		
+		// Column sorting, stops footer from triggering as well
+		var asc = true
+		$('#dataTable').on("click", 'th:not(tfoot tr th)', function(event) {
+			var parent = $(event.target).parent()
+		    var myIndex = $(parent).prevAll().length;
+			if(asc) table.order([myIndex, "asc"]).draw()
+			else table.order([myIndex, "dec"]).draw()
+			asc = !asc
+		})
 		
 		// Difference toggle
 		$('.detailTable').on('click', '#viewDifferenceBtn', function (e) {
@@ -668,59 +619,7 @@
 				"url":serverURL+"search/" + data,
 				"dataSrc": ""
 			},
-			"columns": [
-	            {
-	                "className":      'details-control',
-	                "orderable":      false,
-	                "data":           null,
-	                "defaultContent": '<button class="hamburger hamburger--collapse" type="button">' +
-	                	  					'<span class="hamburger-box">' +
-	                							'<span class="hamburger-inner"></span>' +
-	              							'</span>' +
-	            						'</button>'
-	            },
-	         	// Patient name builder
-	            {
-	            	"render": function ( data, type, row ) { 
-	            		return row['PatientLastName'] + ", " + row['PatientFirstName'] ; 
-	            	}
-	            },
-	         	// DOB rules for formatting
-	            {
-	            	"render": function ( data, type, row ) {
-	            		var s = row['PatientDOB']
-	            		return s[4]+s[5]+"/"+s[6]+s[7]+"/"+s[0]+s[1]+s[2]+s[3]
-	            	}
-	            },
-	            { data: "ResultType" },
-	            { data: "Report" },
-	            { data: "ResultStatus" },
-	            { data: "PatientClass" },
-	         	// Provider information builder
-	            {
-	            	"render": function ( data, type, row ) { 
-	            		return row['ProvLastName'] + ", " + row['ProvFirstName'] +
-	            		" " + row['ProviderID'] + "-" + row['ProviderRole']; 
-	               }
-	            },
-	            { data: "ProcessedDateTime" },
-	            { data: "Destination" },
-	            { data: "SourceOID" },
-            
-	            { data: "PatientFirstName" },
-	            { data: "RouteID" },
-	            { data: "MessageControlID" },
-	            { data: "MessageDateTime" },
-	            { data: "MRN" },
-	            { data: "AccessionID" },     
-	            { data: "OBRLOINCDescription" },
-	            { data: "OBRUniversalServiceID" },
-	            { data: "DocumentType" },
-	            { data: "SessionId"	},
-	            { data: "DelayEntry" },
-	            { data: "DestinationStatus" },
-	            
-			],
+			"columns": buildDynamicDataTable($('#dataTable'), dynamicColumns),
 			"order": [[8, 'dec']],
 			// Conditional formatting for undelivered messages to look grayed out
 			rowCallback: function(row, data, index) {
@@ -732,6 +631,8 @@
 			}
 		});
 		
+		hideColumns(table, dynamicColumns)
+				
 		// Save the page length on change
 		$('#dataTable_length').on("change", 'select', function(){
 	        // for persistant data
@@ -740,7 +641,7 @@
 	        sessionStorage.setItem('dataTable_length',$(this).val());
 	    });
 		
-		table.columns( '.detail' ).visible( false );
+		//table.columns( '.detail' ).visible( false );
 		
 		$('.dataTables_wrapper .dataTables_filter input').attr("placeholder", '\uD83D\uDD0E Search All Columns');
 		//table.columns.adjust().draw();
@@ -779,7 +680,7 @@
 	});
 	
 	// Controls the visibility of the details section of each row
-	$('#dataTable tbody').on('click', 'td.details-control', function (e) {	
+	$('#dataTable').on('click', 'td.details-control', function (e) {	
 		e.preventDefault();
 		e.stopPropagation();
 		var tr = $(this).closest('tr');
@@ -812,8 +713,7 @@
 	
 	// Our selector excludes the expand elements
 	// This adds data to the details column containing information from a new ajax call based on data from the row
-	$('#dataTable tbody').on('click', 'td:not(.details-control)', function (e) {
-
+	$('#dataTable').on('click', 'td:not(.details-control)', function (e) {
 		if(!detailEvent) return;
 		// Make sure we're in the right element
 		try {

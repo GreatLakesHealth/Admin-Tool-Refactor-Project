@@ -442,7 +442,24 @@ ClassMethod GetSearchResult(inData As %String) As %Status
 		
 		set result = ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
 		do ##class(HIE.Web.GridServer.Helpers).AuditEvent("GetSearchResult",query,"User searched for messages, invoking SQL queries and viewing special information defined in Event Data")
-		write result
+		
+		// Custom format manipulations
+		set mutation = {}.%FromJSON(result)
+		set iter = mutation.%GetIterator()
+		while iter.%GetNext(.key, .value) { 
+			set value.PatientFullName = value.PatientLastName_", "_value.PatientFirstName
+			set value.ProviderName = value.ProvLastName_", "_value.ProvFirstName_" "_value.ProviderID_" - "_value.ProviderRole
+			
+			// Manual formatting from ill-formed dates
+			try {
+				set preDOB = value.PatientDOB
+				set value.PatientDOB = $extract(preDOB,5)_$extract(preDOB,6)_"/"_$extract(preDOB,7)_$extract(preDOB,8)_"/"_$extract(preDOB,1)_$extract(preDOB,2)_$extract(preDOB,3)_$extract(preDOB,4)
+			} catch(e) { 
+				set value.PatientDOB = preDOB
+			}
+		}
+		
+		write mutation.%ToJSON()
 	}
 	catch ex {
 		write ex.Name

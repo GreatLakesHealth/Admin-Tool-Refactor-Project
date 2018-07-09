@@ -110,7 +110,7 @@ button:focus {
 /* CLASS DEFINITIONS */
 /**************************************************************/
 
-.detail {
+thead tr[role="row"], .detail {
 	display: none;
 }
 .detailTable {
