@@ -10,7 +10,10 @@
 		<script src="js/jquery.layout_and_plugins.min.js"></script>
 		<script type="text/javascript" src="js/api.js"></script>
 		
-				
+    	<script src="js/modals/iziToast.min.js"></script>
+    	<link rel="stylesheet" type="text/css" href="js/modals/iziToast.css"/>
+    	<script src="js/modals/iziModal.min.js"></script>
+    	<link rel="stylesheet" type="text/css" href="js/modals/iziModal.min.css"/>
 		
 		<link rel="stylesheet" type="text/css" href="js/datatables.min.css"/>
 		<link rel="stylesheet" type="text/css" href="js/jquery-ui.css"/>
@@ -52,386 +55,52 @@
 	</body>
 </html>
 <script>
-idleMax = 10;// Logout after 10 minutes of IDLE
+idleMax = 10;// Logout after < 10 minutes of IDLE
 idleTime = 0;
 $(document).ready(function () {
     var idleInterval = setInterval("timerIncrement()", 60000); 
     $(this).mousemove(function (e) {idleTime = 0;});
-    $(this).keypress(function (e) {idleTime = 0;});
+    $(this).keypress(function (e) {idleTime = 0;
+    
+	    iziToast.success({
+		    title: '&#9055; LOOT CRATE UNLOCKED',
+		    message: "You've unlocked a common loot crate!",
+		});
+    
+    });
 });
 	
 function timerIncrement() {
-    idleTime = idleTime + 1;
-    if (idleTime > idleMax) { 
+    idleTime += 1;
+    if (idleTime > idleMax) {
     	window.location.href = '?CacheLogout=1';
     	setCookie("page", "", 0);
+    } else if (idleTime >= 8) {
+    	iziToast.question({
+		    timeout: 10000,
+		    close: false,
+		    overlay: true,
+		    pauseOnHover: false,
+		    toastOnce: true,
+		    id: 'question',
+		    zindex: 999,
+		    title: 'Hey',
+		    message: "You're about to be logged out",
+		    position: 'center',
+		    buttons: [
+		        ['<button><b>Keep me in!</b></button>', function (instance, toast) {
+		 
+		            instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
+		 
+		        }, true],
+		    ],
+		    onClosing: function(instance, toast, closedBy){
+		    	if(closedBy == "timeout") {
+		    		window.location.href = '?CacheLogout=1';
+		        	setCookie("page", "", 0);
+		        }
+		    },
+		});
     }
 }
-<<<<<<< HEAD:index.csp
 </script>
-=======
-</script>
-<style>
-	#logo {
-		top: 0;
-		left: 0;
-		position: absolute
-	}
-	.popup_wrapper {
-		display: none;
-	}
-	.dataTables_wrapper .dataTables_filter input {
-		width: 100%;
-	    box-sizing: border-box;
-	    border: 1px solid white;
-	    border-radius: 5px;
-	    -webkit-transition: 0.5s;
-	    transition: 0.5s;
-	    outline: none;
-	    height: 23px;
-		padding: 0 !important;
-		margin: 3px 0 0 0 !important;
-	}
-	#logout {
-		top: 0;
-		right: 0;
-		position: absolute
-	}
-	#header {
-		width: 100%;
-		background-color: #5f5f5f;
-	}
-	.dataTables_wrapper .dataTables_filter input {
-		
-	}
-	
-	.dataTables_wrapper .dataTables_filter input:focus {
-	    border: 3px solid #555;
-	}
-	
-	@font-face {
-	    font-family: 'brandon_grotesque_regularRg';
-	    src: url('fonts/brandon_reg-webfont.woff2') format('woff2');
-	    font-weight: normal;
-	    font-style: normal;
-	
-	}
-	body{
-	  font-family: 'Open Sans', sans-serif;
-	  font-size: 12px;
-	  background:#373737;
-	}
-	.settings {
-		width: 100%;
-		margin: 5px 5px 5px 0 !important;	
-	}
-	.contentHeader {
-		display: flex;
-	  	flex-direction: column;
-	}
-	div.slider {
-		display: none;
-    }
-    table.dataTable tbody td.no-padding {
-    	padding: 0;
-    }
-    
-	button:focus { outline: none; }
-	
-	td.details-control {
-	    background-color: #373737;
-	    cursor: pointer;
-	}
-	
-	.dialog-content {
-		margin: 10px;
-	}
-	
-	.ui-widget.success-dialog {
-		/*font-family: Verdana,Arial,sans-serif;*/
-		font-family: 'Open Sans', sans-serif;
-		font-size: .8em;
-	}
-	
-	.ui-widget-content.success-dialog {
-	    background: #F9F9F9;
-	    border: 1px solid #70A059;
-	    color: #222222;
-	}
-	
-	.ui-dialog.success-dialog {
-	    left: 0;
-	    outline: 0 none;
-	    padding: 0 !important;
-	    position: absolute;
-	    top: 0;
-	}
-	
-	.ui-dialog.success-dialog .ui-dialog-content {
-	    background: none repeat scroll 0 0 transparent;
-	    border: 0 none;
-	    overflow: auto;
-	    position: relative;
-	    padding: 0 !important;
-	    margin: 0;
-	}
-	
-	.ui-dialog.success-dialog .ui-widget-header {
-	    background: #70A059;
-	    border: 0;
-	    color: #fff;
-	    font-weight: normal;
-	}
-	
-	.ui-dialog.success-dialog .ui-dialog-titlebar {
-	    padding: 0.1em .5em;
-	    position: relative;
-	    font-size: 1em;
-	}
-	
-	html,body {
-	    height:100%;
-	    width:100%;
-	    margin: 0px;
-	    padding: 0px;
-	}
-	
-	#wrap {
-	  height: 100%;
-	  width: 100%;
-	  display: table;
-	}
-	#content {
-		display: table-row; height: 100%;	
-	}
-
-	a {
-		text-align: center;
-	}
-	th {
-		//width:100px !important;
-		font-size:.9em;
-		color: white;
-	}
-	#nav {
-  		flex-direction: row;
-  		flex-wrap: wrap;
-  		justify-content: center;
-  		align-items: center;
-  		text-align:center;
-  		display: flex;
-  	}
-	
-	p {
-	  font-size:12px;
-	  text-decoration: none;
-	  color:#ffffff;
-	}
-	
-	h1 {
-	  font-size:3em;
-	  color:white;
-	  margin: 20px auto;
-	}
-	
-	.button-primary, .button-error, .button-warning, .button-secondary, .ui-dialog button {
-        padding: 10px;
-        margin: 10px;
-		color: white;
-		font-weight: 600;
-		font-size: 1em;
-		border-radius:4px;
-		border: #ffffff00 1px solid;
-	}
-	
-	tr.shown td.details-control {
-	    background-color: #70A059;
-	}
-
-    .button-red {
-        background: #DD5F13 !important;
-    }
-    
-    .button-red:hover {
-	  background:#f7d8c4 !important; 
-	}
-	
-	.button-primary, .ui-dialog button {
-        background: #70A059;
-    }
-    
-    .button-primary:hover, .ui-dialog button:hover {
-	  background:#B2FF8E; 
-	}
-
-    .button-error {
-        background: rgb(202, 60, 60); /* this is a maroon */
-    }
-
-    .button-warning {
-        background: rgb(223, 117, 20); /* this is an orange */
-    }
-
-    .button-secondary {
-        background: rgb(66, 184, 221); /* this is a light blue */
-    }
-    
-    ul.none {
-	  list-style-type: none
-	}
-	
-	li.plus:before {
-	  content: "+";
-	  padding-right: 5px;
-	}
-	
-	li.minus:before {
-	  content: "-";
-	  padding-right: 5px;
-	}
-	
-	.parse-unit {
-	  overflow: scroll;
-	  white-space: nowrap;
-	  padding: 30px;
-	  margin-bottom: 30px;
-	  font-size: medium;
-	  font-weight: 200;
-	  line-height: 10px;
-	  color: inherit;
-	  background-color: #eeeeed;
-	  -webkit-border-radius: 6px;
-	     -moz-border-radius: 6px;
-	          border-radius: 6px;
-	}
-	
-	/* The container */
-	.checks {
-	    display: block;
-	    position: relative;
-	    padding-left: 35px;
-	    margin-bottom: 12px;
-	    margin-top: 5px;
-	    cursor: pointer;
-	    font-size: 18px;
-	    -webkit-user-select: none;
-	    -moz-user-select: none;
-	    -ms-user-select: none;
-	    user-select: none;
-	    color: white;
-	}
-	
-	/* The switch - the box around the slider */
-	.switch {
-	  position: relative;
-	  display: inline-block;
-	  width: 60px;
-	  height: 34px;
-	}
-	
-	/* Hide default HTML checkbox */
-	.switch input {display:none;}
-	
-	/* The slider */
-	.sliderCheckbox {
-	  position: absolute;
-	  cursor: pointer;
-	  top: 0;
-	  left: 0;
-	  right: 0;
-	  bottom: 0;
-	  background-color: #ccc;
-	  -webkit-transition: .4s;
-	  transition: .4s;
-	  border-radius: 5px;
-	}
-	
-	.sliderCheckbox:before {
-	  position: absolute;
-	  content: "";
-	  height: 26px;
-	  width: 26px;
-	  left: 4px;
-	  bottom: 4px;
-	  background-color: white;
-	  -webkit-transition: .4s;
-	  transition: .4s;
-	  border-radius: 5px;
-	}
-	
-	input:checked + .sliderCheckbox {
-	  background-color: #70A059;
-	}
-	
-	input:focus + .sliderCheckbox {
-	  box-shadow: 0 0 1px #70A059;
-	}
-	
-	input:checked + .sliderCheckbox:before {
-	  -webkit-transform: translateX(26px);
-	  -ms-transform: translateX(26px);
-	  transform: translateX(26px);
-	}
-	
-	/* Rounded sliders */
-	.sliderCheckbox.round {
-	  border-radius: 34px;
-	}
-	
-	.sliderCheckbox.round:before {
-	  border-radius: 50%;
-	}
-	
-	/* Hide the browser's default checkbox */
-	.checks input {
-	    position: absolute;
-	    opacity: 0;
-	    cursor: pointer;
-	}
-	
-	/* Create a custom checkbox */
-	.checkmark {
-	    position: absolute;
-	    top: 0;
-	    left: 0;
-	    height: 25px;
-	    width: 25px;
-	    background-color: #eee;
-	}
-	
-	/* On mouse-over, add a grey background color */
-	.checks:hover input ~ .checkmark {
-	    background-color: #ccc;
-	}
-	
-	/* When the checkbox is checked, add a green background */
-	.checks input:checked ~ .checkmark {
-	    background-color: #70A059;
-	}
-	
-	/* Create the checkmark/indicator (hidden when not checked) */
-	.checkmark:after {
-	    content: "";
-	    position: absolute;
-	    display: none;
-	}
-	
-	/* Show the checkmark when checked */
-	.checks input:checked ~ .checkmark:after {
-	    display: block;
-	}
-	
-	/* Style the checkmark/indicator */
-	.checks .checkmark:after {
-	    left: 9px;
-	    top: 5px;
-	    width: 5px;
-	    height: 10px;
-	    border: solid white;
-	    border-width: 0 3px 3px 0;
-	    -webkit-transform: rotate(45deg);
-	    -ms-transform: rotate(45deg);
-	    transform: rotate(45deg);
-	}
-</style>
->>>>>>> 1758afc398d872f6e0b29fd1ca12477a690cef96:index.html

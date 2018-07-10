@@ -3,12 +3,17 @@
 /* FIRST ORDER DEFINITIONS */
 /**************************************************************/
 
+* {
+	
+}
+
 html, body {
 	background:#373737;
 	height:100%;
     width:100%;
     margin: 0px;
     padding: 0px;
+    overflow: hidden !important;
 }
 body {
 	font-family: 'Open Sans', sans-serif;
@@ -110,6 +115,12 @@ button:focus {
 /* CLASS DEFINITIONS */
 /**************************************************************/
 
+.closeDetail {
+	float: right;
+}
+.maximize {
+    float: left;
+}
 thead tr[role="row"], .detail {
 	display: none;
 }
@@ -118,7 +129,7 @@ thead tr[role="row"], .detail {
 }
 .detailTable th {
 	vertical-align:top;
-	width: 15%;
+	width: 60px;
 }
 .detailTable tbody > tr > td:last-child {
 	text-align: left;
@@ -139,9 +150,6 @@ th.sorting, .sorting_asc, .sorting_desc {
 	left: 0;
 	position: absolute
 }
-.closeDetail {
-	float: left;
-}
 .header {
 	width: 100%;
 	background-color: #5f5f5f;
@@ -154,7 +162,7 @@ th.sorting, .sorting_asc, .sorting_desc {
 .wrapword {
 	white-space: pre-line;
 	height: 200px;
-	width: 640px;
+	width: 100%;
 	overflow: scroll;
 }
 .content {
@@ -404,11 +412,10 @@ th.sorting, .sorting_asc, .sorting_desc {
     transform: rotate(45deg);
 }
 .detailColumn {
-	top: 59px !important;
-	float: right;
-	height: calc(100vh - 59px);
+	/*top: 59px !important;
+	height: calc(100vh - 54px);
 	width: 750px;
-	overflow: auto;
+	overflow: auto;*/
 }
 .detailsContents {
 	background-color: #dddddd;
@@ -435,6 +442,9 @@ th.sorting, .sorting_asc, .sorting_desc {
 /* TAG DEFINITIONS */
 /**************************************************************/
 
+#dataTable th {
+	padding: 10px;
+}
 #logout {
 	top: 0;
 	right: 0;
@@ -452,12 +462,15 @@ th.sorting, .sorting_asc, .sorting_desc {
 	bottom: 0;
 	display: none;
 }
-/*
-#detailColumnPopup_background {
-	transition: all 0.3s 0.3s;
+#pdfDialog {
+	background-color: #373737 !important;
+	z-index: 900;
 }
-.detailColumn, #detailColumnPopup_wrapper {
-	transition: all 0.3s ease-out;
+#pdfDialog p {
+	color: white;
 }
-*/
+#pdfview {
+	height: 100%;
+	width: 100%;
+}
 

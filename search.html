@@ -77,7 +77,8 @@
 	</div>
 	<div id="detailColumnPopupSearch" class="detailColumn">
 		<div class="detailsContents">
-			<button class="button-primary closeDetail">Close</button>
+			<button class="button-primary maximize" data-izimodal-fullscreen="">Maximize</button>
+			<button class="button-primary button-primary button-red closeDetail">Close</button>
 			<br>
 			<h2 id="messageDetailsHeader"></h2>
 			<table class="detailTable">
@@ -197,7 +198,7 @@
 			    <button id='viewDifferenceBtn'>View Difference</button>
 			    </th>
 			    <td>
-			    	<div class="wrapword" >
+			    	<div class="wrapword hl7ParseTable" >
 			    		<div id="difference"></div>
 			    	</div>
 			    </td>
@@ -289,12 +290,21 @@
 	}
 	
 	(function ($) {
+		$("#detailColumnPopupSearch").iziModal({
+			width: "50%",
+			top: 55,
+			transitionIn: "fadeInUp",
+			transitionOut: "fadeOutUp",
+			bodyOverflow: false,
+			overlay: false,
+			openFullscreen: false,
+		});
 		// Removes duplicate wrappers
 		$('#detailColumnPopupSearch_wrapper').each(function (i) {
 		    $('[id="' + this.id + '"]').slice(1).remove();
 		});
 		// Details popup init
-		$('#detailColumnPopupSearch').popup({
+		$('#detailColumnPopupSearchs').popup({
 			backgroundactive: true,
 		});
 		$('#clearBtn').click(function() {
@@ -339,7 +349,7 @@
 		});
 
 		$('.closeDetail').click(function() {
-			$('#detailColumnPopupSearch').popup('hide');
+			$('#detailColumnPopupSearch').iziModal('close');
 			$('tr td').removeClass('selected_row')
 		});
 		
@@ -554,6 +564,7 @@
 			table.settings()[0].jqXHR.abort()
 			table.destroy();
 			table, columns, a, b, result = "";
+			$('#dataTable').empty()
 		// We don't care if it fails
 		} catch (e){}
 		
@@ -571,10 +582,6 @@
 		$('#resize_wrapper_search').show("normal");
 		var data = {}
 		var payload = $(this).serializeFormJSON();
-		
-		// Clear user view of dates for ease of use
-		//$("#from").val("")
-		//$("#to").val("")
 		
 		// json manipulation to form provider information properly
 		try {
@@ -640,9 +647,7 @@
 	        // just for the session
 	        sessionStorage.setItem('dataTable_length',$(this).val());
 	    });
-		
-		//table.columns( '.detail' ).visible( false );
-		
+				
 		$('.dataTables_wrapper .dataTables_filter input').attr("placeholder", '\uD83D\uDD0E Search All Columns');
 		//table.columns.adjust().draw();
 		// Individual column search DOM definition. We add the headers to an array for future use. This is because when the
@@ -714,6 +719,7 @@
 	// Our selector excludes the expand elements
 	// This adds data to the details column containing information from a new ajax call based on data from the row
 	$('#dataTable').on('click', 'td:not(.details-control)', function (e) {
+		// Did the user use the event toggle?
 		if(!detailEvent) return;
 		// Make sure we're in the right element
 		try {
@@ -747,7 +753,7 @@
         if ( $(this).hasClass('selected_row')) {
         	$('tr td').removeClass('selected_row')
         	// Close dialog
-        	$('#detailColumnPopupSearch').popup('hide');
+        	$('#detailColumnPopupSearch').iziModal('close');
         	return;
         }
         // Otherwise remove styling from whatever is selected and make this the new selection, and continue with the query
@@ -771,10 +777,9 @@
 			"lastname":datum.PatientLastName,
 			"mrn":datum.MRN,
 			"source":datum.SourceOID,
-			"dob":datum.PatientDOB,
+			"dob":datum.PatientDOB.replace(new RegExp("/", 'g'), "-"),
 			"resulttype":datum.ResultType,
    		};
-		data.token = {"token":getCookie("token")};
 		data.payload = payload;
 		data = JSON.stringify(data);
 		
@@ -783,9 +788,6 @@
    			type: "GET",
    		    contentType: "application/json",
    		    dataType: "text",
-   			error: function(response) { 
-   		        console.log(response);
-   		    },
    			success: function(response) {
    				try {
 					$('#messageDetailsHeader').text(patientName + " " + report)
@@ -841,25 +843,29 @@
 					}
 					catch(e) {}
 					// Open dialog
-					$('#detailColumnPopupSearch').popup('show');					
+					$('#detailColumnPopupSearch').iziModal('open');					
    				}
    				catch(e) {
    					$(".thinkingBox").fadeOut("slow");
-   					$('#detailColumnPopupSearch').popup('hide');
-   					$(".errorBox").fadeIn("slow", function() {
-   						$(".errorBox").fadeOut("slow");
+   					$('#detailColumnPopupSearch').iziModal('close');
+   					
+   					iziToast.warning({
+   					    title: 'No available details',
+   					 	timeout: 2000,
    					});
    					$('tr td').removeClass('selected_row')
    				}
    			}
    		}).done(function() {
    			$(".thinkingBox").fadeOut("slow");
+   			$('#detailColumnPopupSearch').iziModal('open');
    		});
-   		//table.columns.adjust().draw();
 	});
 	$.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) { 
-		//navigate("search.html");
-		alert("Search timed out, please try again.")
+		iziToast.error({
+		    title: 'Error',
+		    message: 'Search timed out.',
+		});
 	};
 	// Event handler for clicking outside the dialog
 	$("body").on("click",".ui-widget-overlay",function() {
@@ -871,13 +877,11 @@
 		var diff = JsDiff.diffWords(a.textContent, b.textContent);
 		var fragment = document.createDocumentFragment();
 		for (var i=0; i < diff.length; i++) {
-
 			if (diff[i].added && diff[i + 1] && diff[i + 1].removed) {
 				var swap = diff[i];
 				diff[i] = diff[i + 1];
 				diff[i + 1] = swap;
 			}
-
 			var node;
 			if (diff[i].removed) {
 				node = document.createElement('del');
@@ -897,12 +901,10 @@
 	.hiddenLogic {
 		display: none;
 	}
-	
 	.selected_row {
 	    background-color: #5f5f5f !important;
 	    color: white !important;
 	 }
-
 	.ui-dialog .ui-dialog-buttonpane {
 		background-color: #373737;
 		margin-top: 0;
@@ -920,17 +922,7 @@
 	.ui-dialog {
 		left: 0 !important;
 	}
-	#pdfDialog {
-		background-color: #373737 !important;
-		z-index: 1000000000;
-	}
-	#pdfDialog p {
-		color: white;
-	}
-	#pdfview {
-		height: 100%;
-		width: 100%;
-	}
+	
 	#detailColumn_wrapper {
 		z-index: 0 !important;
 	}
@@ -965,20 +957,14 @@
 		content: "\21E8";
 		font-size: 30px;
 	}
-	
 	#ui-datepicker-div {
 		left: 220px !important;
 	}
-	#GLHCCommonHL7Table, #DeliveredHL7Table, #OriginalHL7Table {
+	.hl7ParseTable {
 		height: 200px;
-		width: 640px;
-	}
-	#DeliveredHL7Result, #GLHCCommonHL7Result, #OriginalHL7Result, #difference {
+		width: 100%;
 		display: inline-block;
 	}
-    
-	
-
 	#hideDetailsBtn {
 		height: 40px !important;	
 	}
@@ -987,9 +973,7 @@
 		width: 100%;
 		height: 40px;
 		margin: 0;
-	}
-	
-	
+	}	
 	.ui-datepicker {
 		background-color: white;
 	}
@@ -1001,16 +985,10 @@
 	  filter: Alpha(Opacity=50);
 	  background-color: black;
 	}
-	
-	
-	
-	
-	
 	.hl7ParseTable tr.header {
 	    display: table-row;
 	    width: 100%;
 	}
-	
 	.hl7ParseTable td, #hl7Table th {
 	    border: 1px solid #dddddd;
 	    text-align: left;

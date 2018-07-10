@@ -266,7 +266,7 @@ function populateProviderTable(destination) {
 		asc = !asc
 	})
 	
-	$('#dataTable tbody').on('click', 'td:not(.details-control)', function (e) {
+	$('#dataTable').on('click', 'td:not(.details-control)', function (e) {
 		e.preventDefault();
         e.stopPropagation();
         var destination = $(this).parent().find('td').eq(2).html()
@@ -379,13 +379,6 @@ function populateProviderTable(destination) {
 	  	center: {
 	    },
 	  });
-	
-	// Individual column search DOM definition
-	$('#dataTable tfoot th').each( function (i) {
-        //var title = $('#searchTable thead th').eq( $(this).index() ).text();
-        //var title = "&#x1F50E;"
-        //$('#searchForm').html( '<input type="text" placeholder="'+title+'" data-index="'+i+'"/><br>' );
-    });
 	
 	var pageLength =  localStorage.getItem('dataTable_length') || 10;
 	
