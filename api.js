@@ -57,8 +57,8 @@ $(document).on("click", "#logout", function (e) {
 
 // Function that uses AJAX shorthand for dumping html contents into element
 function navigate(pageRef) {
-	$('#detailColumnPopupSearch').popup('hide');
-	$('#detailColumnPopupRoute').popup('hide');
+	$('#detailColumnPopupSearch').iziModal('close');
+	$('#detailColumnPopupRoute').iziModal('close');
 	try {
 		table.settings()[0].jqXHR.abort()
 		ajaxDetail.settings()[0].jqXHR.abort()

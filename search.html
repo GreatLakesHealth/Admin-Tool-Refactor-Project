@@ -77,6 +77,7 @@
 	</div>
 	<div id="detailColumnPopupSearch" class="detailColumn">
 		<div class="detailsContents">
+			<h3 class="button-primary maximize">Drag to Move</h3>
 			<button class="button-primary maximize" data-izimodal-fullscreen="">Maximize</button>
 			<button class="button-primary button-primary button-red closeDetail">Close</button>
 			<br>
@@ -291,16 +292,21 @@
 	
 	(function ($) {
 		$("#detailColumnPopupSearch").iziModal({
-			width: "50%",
+			width: "25%",
 			top: 55,
 			transitionIn: "fadeInUp",
 			transitionOut: "fadeOutUp",
-			bodyOverflow: false,
 			overlay: false,
 			openFullscreen: false,
 		});
+		
+		$("#detailColumnPopupSearch").draggable({
+			grid: [10,57],
+			handle: 'h3',
+		});
+				
 		// Removes duplicate wrappers
-		$('#detailColumnPopupSearch_wrapper').each(function (i) {
+		$('#detailColumnPopupSearch').each(function (i) {
 		    $('[id="' + this.id + '"]').slice(1).remove();
 		});
 		// Details popup init
@@ -729,7 +735,21 @@
 		e.preventDefault();
         e.stopPropagation();
     	
-        // Clear dialog UI
+        // Check the css if it's selected, if it is then the user is deselecting, and we close the dialog and end the function
+        if ( $(this).hasClass('selected_row')) {
+        	$('tr td').removeClass('selected_row')
+        	// Close dialog
+        	$('#detailColumnPopupSearch').iziModal('close');
+        	return;
+        } 
+        // Otherwise remove styling from whatever is selected and make this the new selection, and continue with the query
+        else {
+        	$(".thinkingBox").show()
+            $('tr td').removeClass('selected_row')
+            highlightSelected($(this))
+        }
+        
+     	// Clear dialog UI
         $('#SessionID').text('')
 		$('#messageDetailsHeader').text('')
 		$('#QueuedforDelivery').text('')
@@ -749,20 +769,7 @@
 		$('#ACKReceived').text('')
 		$('#ACK').text('')
 		$('#midConDetails').text('')
-        // Check the css if it's selected, if it is then the user is deselecting, and we close the dialog and end the function
-        if ( $(this).hasClass('selected_row')) {
-        	$('tr td').removeClass('selected_row')
-        	// Close dialog
-        	$('#detailColumnPopupSearch').iziModal('close');
-        	return;
-        }
-        // Otherwise remove styling from whatever is selected and make this the new selection, and continue with the query
-        else {
-        	$(".thinkingBox").show()
-            $('tr td').removeClass('selected_row')
-            highlightSelected($(this))
-        }
-        
+		
         // Get data from the selected row
         var datum = table.row( $(this).parents('tr') ).data();
    		var data = {}

@@ -34,6 +34,7 @@
 	</div>
 	<div class="detailColumn" id="detailColumnPopupRoute">
 		<div class="detailsContents">
+			<h3 class="button-primary maximize">Drag to Move</h3>
 			<button class="button-primary closeDetail">Close</button>
 			<br>
 			<h2>Organization Information</h2>
@@ -239,16 +240,26 @@ function populateProviderTable(destination) {
 // When the page loads we populate the table with the routes data
 (function ($) {
 	// Removes duplicate wrappers
-	$('#detailColumnPopupRoute_wrapper').each(function (i) {
+	$('#detailColumnPopupRoute').each(function (i) {
 	    $('[id="' + this.id + '"]').slice(1).remove();
 	});
 	// Details popup init
-	$('#detailColumnPopupRoute').popup({
-		backgroundactive: true,
+	$("#detailColumnPopupRoute").iziModal({
+			width: "25%",
+			top: 55,
+			transitionIn: "fadeInUp",
+			transitionOut: "fadeOutUp",
+			overlay: false,
+			openFullscreen: false,
+	});
+	
+	$("#detailColumnPopupRoute").draggable({
+		grid: [10,57],
+		handle: 'h3',
 	});
 	
 	$('.closeDetail').click(function() {
-		$('#detailColumnPopupRoute').popup('hide');
+		$('#detailColumnPopupRoute').iziModal('close');
 		$('tr td').removeClass('selected_row')
 	});
 	
@@ -275,7 +286,7 @@ function populateProviderTable(destination) {
         if ( $(this).hasClass('selected_row')) {
         	$('tr td').removeClass('selected_row')
         	// Close dialog
-        	$('#detailColumnPopupRoute').popup('hide');
+        	$('#detailColumnPopupRoute').iziModal('close');
         	return;
         }
         // Otherwise remove styling from whatever is selected and make this the new selection, and continue with the query
@@ -283,9 +294,9 @@ function populateProviderTable(destination) {
             $('tr td').removeClass('selected_row')
             highlightSelected($(this))
             // Open dialog
-            $('#detailColumnPopupRoute').popup('show');
+            //$('#detailColumnPopupRoute').iziModal('open');
         }
-		$('#detailColumnPopupRoute').popup('show')
+		$('#detailColumnPopupRoute').iziModal('open');
 		populateProviderTable(destination);
 	});
 	
