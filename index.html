@@ -5,7 +5,7 @@
 		
 		<link rel="stylesheet" type="text/css" href="css/master.css"/>
 		
-		<script src="js/jquery.min.js" type="text/javascript"></script>
+		<script src="https://code.jquery.com/jquery-3.3.1.min.js" type="text/javascript"></script>
 		<script src="js/jquery-ui.js"></script>
 		<script src="js/jquery.layout_and_plugins.min.js"></script>
 		<script type="text/javascript" src="js/api.js"></script>
@@ -18,7 +18,7 @@
 		
 		<link rel="stylesheet" type="text/css" href="js/datatables.min.css"/>
 		<link rel="stylesheet" type="text/css" href="js/jquery-ui.css"/>
-		<link rel="stylesheet" type="text/css" href="js/hamburgers.css"/>
+		<link rel="stylesheet" type="text/css" href="css/hamburgers.css"/>
 		<link rel="stylesheet" type="text/css" href="js/jquery-ui-timepicker-addon.css"/>
 		<link rel="stylesheet" type="text/css" href="js/layout-default.css"/>
 		<script type="text/javascript" src="js/datatables.min.js"></script>
@@ -29,6 +29,7 @@
     	<script src="js/build/pdf.js"></script>
     	<script src="js/easyPDF.js"></script>
     	<script type="text/javascript" src="js/jquery-ui-timepicker-addon.js"></script>
+    	<script type="text/javascript" src="js/datetime-moment.js"></script>
     	
     	<link rel="stylesheet" href="js/diffstyle.css"/>
     	<script type="text/javascript" src="js/diff.js"></script>
@@ -40,11 +41,10 @@
 	<body>
 		<div class="wrap">
 			<div class="header">
-				
 				<div class="nav">				
 					<button href="changepassword.csp" class="button-primary">Profile</button>
 					<button href="routes.html" class="button-primary">Routes</button>
-					<button href="search.html" class="button-primary">Message Search</button>
+					<button href="search.html" class="button-primary" id="default_page">Message Search</button>
 				</div>
 				<div class="logo">	
 					<img src="images/GLHC_Final Logo W_Digital_10.23.png" alt="GLHC Logo" height="56px">
@@ -58,19 +58,50 @@
 <script>
 idleMax = 10;// Logout after < 10 minutes of IDLE
 idleTime = 0;
+var idleQueue = false;
+
 $(document).ready(function () {
+	// Idle pool, checks on interval 
+	setInterval(checkIdle, 10000);
+	
+	$('#default_page').addClass('selected_page')
+	
     var idleInterval = setInterval("timerIncrement()", 60000); 
-    $(this).mousemove(function (e) {idleTime = 0;});
-    $(this).keypress(function (e) {idleTime = 0;
-    
+    $(this).mousemove(function (e) {
+    	idleTime = 0;
+    	updateIdle();
+    });
+    $(this).keypress(function (e) {
+    	idleTime = 0;
+    	updateIdle();
+    	/*
 	    iziToast.success({
-		    title: '&#9055; LOOT CRATE UNLOCKED',
-		    message: "You've unlocked a common loot crate!",
+		    title: '&#9055; Test Notifications',
+		    message: "They're working!",
 		});
+		*/
     
     });
 });
-	
+
+// Checks bool value, and tickles the server if not idle, reseting the bool
+function checkIdle() {
+	if (!idleQueue) return
+	$.ajax({
+		url:serverURL+"refresh",
+		type: "GET",
+	    contentType: "application/json",
+	    dataType: "text",
+		success: function(response) { 
+	        idleQueue = !idleQueue
+	    }
+	});
+}
+// Updates the idle bool
+function updateIdle() {
+	idleQueue = true;
+}
+// Updates our idle timer that controls the logout notification
 function timerIncrement() {
     idleTime += 1;
     if (idleTime > idleMax) {
@@ -88,12 +119,10 @@ function timerIncrement() {
 		    title: 'Hey',
 		    message: "You're about to be logged out",
 		    position: 'center',
-		    buttons: [
-		        ['<button><b>Keep me in!</b></button>', function (instance, toast) {
-		 
-		            instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
-		 
-		        }, true],
+		    buttons: [[
+		        '<button><b>Keep me in!</b></button>', function (instance, toast) {
+			   		instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
+		        }, true]
 		    ],
 		    onClosing: function(instance, toast, closedBy){
 		    	if(closedBy == "timeout") {
