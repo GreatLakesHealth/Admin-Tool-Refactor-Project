@@ -38,13 +38,14 @@ ClassMethod Get() As %Status
 }
 
 /// Gives HL7 using the rawcontentget for full, longer messages
-ClassMethod GetPDFHL7(inData As %String) As %Status
+ClassMethod GetPDFHL7() As %Status
 {
 	try {
-		set data = {}.%FromJSON(inData)
-		set messageid = data.messageid
+		//set data = {}.%FromJSON(inData)
+		//set messageid = data.messageid
+		
 		// Test working id
-		//set messageid = 70637136
+		set messageid = 5254261877
 		set pHL7Message = ##class(EnsLib.HL7.Message).%OpenId(messageid)
 		
 		Set tSC = $$$OK
@@ -255,9 +256,6 @@ ClassMethod GetDetail(inData As %String) As %Status
 	return $$$OK
 }
 
-
-// Gets list of providers for use in a drop down
-
 ClassMethod GetProviders(inData As %String) As %Status
 {
 	try {
@@ -338,7 +336,7 @@ ClassMethod Foreach(pInData) As %String
 							}
 						}
 						// Close 'or' logic
-						set tFilterParam = tFilterParam_")"
+						set tFilterParam = tFilterParam_")" 	
 					}
 				}
 				// If this is the first occurance of a result type
@@ -412,9 +410,9 @@ ClassMethod Foreach(pInData) As %String
 				}
 				if key = "DeliveryStatus" {
 					continue
-				} 
+				}
 				// If the key isn't special, just use its key name and value to make a sql string
-				set tFilterParam = tFilterParam_" and "_key_"='"_value_"'"
+				set tFilterParam = tFilterParam_" and upper("_key_")=upper('"_value_"')"
 			}
 		}
 	}
@@ -445,9 +443,9 @@ ClassMethod GetSearchResult(inData As %String) As %Status
 			" as Source, l.DestOrgName as Destination, u.username, l.providerid, l.providerrole, l.deliverystatus"
 		set tFrom = "FROM HIE_Data.LogRoutesProviders l inner join hie_data.organizationusers u on l.sourceorgid = u.organizationid"
 		
-		set tWhere = "where (l.routeid >= (select routeid from HIE_data.logroutesproviders where routeid is not null) or not exists "_
+		set tWhere = "where l.sourceorgid IN (SELECT OrganizationID From HIE_Data.OrganizationUsers Where Username = '"_user_"') and (l.routeid >= (select routeid from HIE_data.logroutesproviders where routeid is not null) or not exists "_
 			"(select l2.routeid from hie_data.logroutesproviders l2 where l2.messagebodyid = l.messagebodyid and l2.routeid "_
-			"is not null)) and username = '"_user_"' " _ ..Foreach(data.payload)_ " GROUP BY l.CreateTS, l.RouteID, l.AccessionID ORDER BY l.CreateTS DESC"	
+			"is not null)) " _ ..Foreach(data.payload)_ " GROUP BY l.CreateTS, l.DestOrgName, l.AccessionID ORDER BY l.ID DESC"	
 		
 		// deprecated query in case of fallback
 		/*
@@ -463,9 +461,9 @@ ClassMethod GetSearchResult(inData As %String) As %Status
 		// Return json result of query
 		set query = tSelect_" "_tFrom_" "_tWhere
 		//write query
-		
-		do ##class(HIE.Web.GridServer.Helpers).AuditEvent("GetSearchResult",query,"User searched for messages, invoking SQL queries and viewing special information defined in Event Data")
+
 		set result = ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+		do ##class(HIE.Web.GridServer.Helpers).AuditEvent("GetSearchResult",query,"User searched for messages, invoking SQL queries and viewing special information defined in Event Data")
 		
 		// Custom format manipulations
 		set mutation = {}.%FromJSON(result)
@@ -520,4 +518,5 @@ ClassMethod GetRoutes(inData As %String) As %Status
 	}
 	return $$$OK
 }
+
 }
