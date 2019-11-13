@@ -1,7 +1,7 @@
-Class HIE.Web.GridServer.RESTHandler Extends HIE.Web.GridServer.GridREST
+Class GLHC.ResultsViewer.ResultsViewerDispatch Extends %CSP.REST
 {
 
-Parameter HandleCorsRequest = 1;
+Parameter HandleCorsRequest = 0;
 
 // Parameter UseSession = 1;
 
@@ -9,27 +9,32 @@ XData UrlMap [ XMLNamespace = "http://www.intersystems.com/urlmap" ]
 {
 <Routes>
 
-<Route Url="/routes/:inData" Method="GET" Call="GetRoutes" Cors="true"/>
-<Route Url="/test" Method="GET" Call="Get" Cors="true"/>
-<Route Url="/search/:inData" Method="GET" Call="GetSearchResult" Cors="true"/>
-<Route Url="/destinationsearch/:inData" Method="GET" Call="DDDestinationSearch" Cors="true"/>
-<Route Url="/destinationroute/:inData" Method="GET" Call="DDDestinationRoute" Cors="true"/>
+<Route Url="/routes/:inData" Method="GET" Call="GetRoutes" Cors="false"/>
+<Route Url="/test" Method="GET" Call="Get" Cors="false"/>
+<Route Url="/search/:inData" Method="GET" Call="GetSearchResult" Cors="false"/>
+<Route Url="/destinationsearch/:inData" Method="GET" Call="DDDestinationSearch" Cors="false"/>
+<Route Url="/destinationroute/:inData" Method="GET" Call="DDDestinationRoute" Cors="false"/>
 
-<Route Url="/source/:inData" Method="GET" Call="DDSource" Cors="true"/>
-<Route Url="/providersnames/:inData" Method="GET" Call="DDProvider" Cors="true"/>
-<Route Url="/emr/:inData" Method="GET" Call="DDEMR" Cors="true"/>
+<Route Url="/source/:inData" Method="GET" Call="DDSource" Cors="false"/>
+<Route Url="/providersnames/:inData" Method="GET" Call="DDProvider" Cors="false"/>
+<Route Url="/emr/:inData" Method="GET" Call="DDEMR" Cors="false"/>
 
-<Route Url="/detail/:inData" Method="GET" Call="GetDetail" Cors="true"/>
-<Route Url="/pdfhl7/:inData" Method="GET" Call="GetPDFHL7" Cors="true"/>
+<Route Url="/detail/:inData" Method="GET" Call="GetDetail" Cors="false"/>
+<Route Url="/pdfhl7/:inData" Method="GET" Call="GetPDFHL7" Cors="false"/>
 
-<Route Url="/providers/:inData" Method="GET" Call="GetProviders" Cors="true"/>
+<Route Url="/providers/:inData" Method="GET" Call="GetProviders" Cors="false"/>
 
-<Route Url="/refresh" Method="GET" Call="Get" Cors="true"/>
+<Route Url="/replay/:inData" Method="GET" Call="GetReplay" Cors="false"/>
+
+<Route Url="/refresh" Method="GET" Call="Get" Cors="false"/>
+
+<Route Url="/login" Method="GET" Call="LoginAudit" Cors="false"/>
+<Route Url="/logout" Method="GET" Call="LogoutAudit" Cors="false"/>
 
 </Routes>
 }
 
-// Test method for checking REST availability
+// Method for pooling user activity
 
 ClassMethod Get() As %Status
 {
@@ -37,29 +42,59 @@ ClassMethod Get() As %Status
 	return $$$OK
 }
 
+// Message replay
+
+ClassMethod GetReplay(inData As %String) As %Status
+{
+	set data = {}.%FromJSON(inData)
+	set messageid = data.messageid
+	
+	set pEventName = "Login"
+	//do ##class(GLHC.ResultsViewer.Helpers).CustomAuditEvent(pEventName)
+	return $$$OK
+}
+
+// Login event tracking
+
+ClassMethod LoginAudit() As %Status
+{
+	set pEventName = "Login"
+	//do ##class(GLHC.ResultsViewer.Helpers).CustomAuditEvent(pEventName)
+	return $$$OK
+}
+
+// Logout event tracking
+
+ClassMethod LogoutAudit() As %Status
+{
+	write "Logged out"
+	set pEventName = "Logout"
+	//do ##class(GLHC.ResultsViewer.Helpers).CustomAuditEvent(pEventName)
+	return $$$OK
+}
+
 /// Gives HL7 using the rawcontentget for full, longer messages
-ClassMethod GetPDFHL7() As %Status
+ClassMethod GetPDFHL7(inData As %String) As %Status
 {
 	try {
-		//set data = {}.%FromJSON(inData)
-		//set messageid = data.messageid
-		
-		// Test working id
-		set messageid = 5254261877
-		set pHL7Message = ##class(EnsLib.HL7.Message).%OpenId(messageid)
-		
-		Set tSC = $$$OK
-	    Set tResponseStream = ##class(%FileCharacterStream).%New() 
-	    Set tSC	 = ##class(HIE.PDFReports.Results.ResultsToPDF).GeneratePDF(pHL7Message, .tResponseStream,,,)
+		set data = {}.%FromJSON(inData)
+		set messageid = data.messageid
+		//set messageid = "96758313"
+		// Sanitation
+		set messageid = ##class(GLHC.ResultsViewer.Helpers).SQLInjectionHandlerNumber(messageid)
 
-		While (tResponseStream.AtEnd = 0) {
+		do ##class(LinkedProcedure.GeneratePDF).GeneratePDF(messageid)
+		&sql(SELECT pdf INTO :stream FROM LinkedTable.PDFs WHERE pdfid = :messageid)
+		While (stream.AtEnd = 0) {
 			Set len = $$$MaxStringLength
-			write $system.Encryption.Base64Encode(tResponseStream.Read(.len))
+			write $system.Encryption.Base64Encode(stream.Read(.len))
 		}
 	}
 	catch ex {
 		write ex.Name
 	}
+	// Attempt to delete regardless
+	try { do ##class(LinkedProcedure.KillPDF).KillPDF(messageid) } catch ex { write ex.Name }
 	return $$$OK
 }
 
@@ -69,6 +104,11 @@ ClassMethod DDDestinationRoute(inData As %String) As %Status
 {
 	try {
 		set data = {}.%FromJSON(inData)
+		
+		// Sanitation
+		set optional = "-()."
+		set data.source = ##class(GLHC.ResultsViewer.Helpers).SQLInjectionHandlerValue(data.source,optional)
+		
 		set user = $username
 		set source = ""
 		if data.source '= "" {
@@ -76,11 +116,11 @@ ClassMethod DDDestinationRoute(inData As %String) As %Status
 		}
 		// SQL definitions
         set tSelect = "SELECT Distinct OrganizationName"
-        set tFrom = "FROM SQLUser.vwAdminRoutesProviders"
-        set tWhere = "where username = '"_user_"'"_source_
+        set tFrom = "FROM LinkedTable.vwAdminProviderRoutes"
+        set tWhere = "where sourceorganization in ("_..GetFacilities()_") "_source_
         "ORDER BY OrganizationName Asc"
         //write tSelect_" "_tFrom_" "_tWhere
-        write ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+        write ##class(GLHC.ResultsViewer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
 	}
 	catch ex {
 		write ex.Name
@@ -95,18 +135,23 @@ ClassMethod DDDestinationSearch(inData As %String) As %Status
 	try {
 		set data = {}.%FromJSON(inData)
 		set user = $username
+		
+		// Sanitation
+		set optional = "-()."
+		set data.source = ##class(GLHC.ResultsViewer.Helpers).SQLInjectionHandlerValue(data.source,optional)
+		
 		set source = ""
 		if data.source '= "" {
 			set source = " and sourceorganization = '"_data.source_"' "
 		}
 		
 		// SQL definitions
-        set tSelect = "SELECT Distinct OrganizationName"
-        set tFrom = "FROM SQLUser.vwAdminRoutesProviders"
-        set tWhere = "where username = '"_user_"' and active=1 "_source_
+        set tSelect = "SELECT Distinct OrganizationName, OrganizationID"
+        set tFrom = "FROM LinkedTable.vwAdminProviderRoutes"
+        set tWhere = "where sourceorganization in ("_..GetFacilities()_")  and active=1 "_source_
         "ORDER BY OrganizationName Asc"
         //write tSelect_" "_tFrom_" "_tWhere
-        write ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+        write ##class(GLHC.ResultsViewer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
 	}
 	catch ex {
 		write ex.Name
@@ -122,19 +167,54 @@ ClassMethod DDProvider(inData As %String) As %Status
 		set data = {}.%FromJSON(inData)
 		set destination = data.destination
 		set source = data.source
+		
+		// Sanitation
+		set optional = ""
+		set destination = ##class(GLHC.ResultsViewer.Helpers).SQLInjectionHandlerNumber(destination,optional)
+		set source = ##class(GLHC.ResultsViewer.Helpers).SQLInjectionHandlerValue(source,optional)
+
 		set tDest = ""
 		if destination '= "" {
-			set tDest = "Destination = '"_destination_"' and"
+			set tDest = "DestinationID = "_destination_" and"
 		}
 
 		// SQL definitions
-		set tSelect = "SELECT LastName, FirstName, ProvNPI"
-		set tFrom = "FROM SQLUser.vwAdminProviderPicklist"
+		set tSelect = "SELECT distinct ProvNPI, LastName, FirstName"
+		set tFrom = "FROM LinkedTable.vwAdminProviderPicklist"
 		set tWhere = "where "_tDest_" Source = '"_source_"' order by LastName Asc"
-        write ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+        write ##class(GLHC.ResultsViewer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
 	}
 	catch ex {
 		write ex.Name
+	}
+	return $$$OK
+}
+
+ClassMethod SQLBuilder(pquery) As %String
+{
+	return ##class(GLHC.ResultsViewer.Helpers).SQLBuilder(pquery)
+}
+
+ClassMethod GetFacilities(pUser As %String = "", pWhich As %String = "OrganizationName") As %Status
+{
+	try {	
+		set query = "SELECT "_pWhich_" FROM LinkedTable.Organizations where FacilityID in ("_##class(GLHC.Notifications.WebService.GatewayDispatchClass).GetFacilities()_")"
+		
+		set facilities = ..SQLBuilder(query)
+		//return facilities
+		set returnFacilities = ""
+		set sc = ##class(%ZEN.Auxiliary.jsonProvider).%ConvertJSONToObject(facilities,,.obj,1)
+		for i=1:1:obj.Count() { 
+		    if pWhich = "id" {
+			    set returnFacilities = returnFacilities_"'"_obj.GetAt(i).ID_"',"
+		    } else {
+				set returnFacilities = returnFacilities_"'"_obj.GetAt(i).OrganizationName_"',"   
+		    }
+		}
+		return $extract(returnFacilities,",",*-1)
+	}
+	catch(e) {
+		w e.Name	
 	}
 	return $$$OK
 }
@@ -144,15 +224,12 @@ ClassMethod DDProvider(inData As %String) As %Status
 ClassMethod DDSource(inData As %String) As %Status
 {
 	try {
-		set data = {}.%FromJSON(inData)
+		//set data = {}.%FromJSON(inData)
 		set user = $username
 		// SQL definitions
-        set tStatement=##class(%SQL.Statement).%New()
-        set tSelect = "select Distinct sourceorganization"
-        set tFrom = "from SQLUser.vwAdminRoutesProviders"
-        set tWhere = "where username = '"_user_"' "_
-        "order by sourceorganization Asc"
-		write ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+        //set tStatement=##class(%SQL.Statement).%New()
+        set query = "SELECT OrganizationName FROM LinkedTable.Organizations where FacilityID in ("_##class(GLHC.Notifications.WebService.GatewayDispatchClass).GetFacilities()_")"
+		write ..SQLBuilder(query)
 	}
 	catch ex {
 		write ex.Name
@@ -165,19 +242,30 @@ ClassMethod DDSource(inData As %String) As %Status
 ClassMethod DDEMR(inData As %String) As %Status
 {
 	try {
-		set data = {}.%FromJSON(inData)
+		//set data = {}.%FromJSON(inData)
 		set user = $username
 		// SQL definitions
         set tSelect = "SELECT Distinct EMR"
-        set tFrom = "FROM SQLUser.vwAdminRoutesProviders"
-        set tWhere = "where EMR is not null and username = '"_user_"' "_
+        set tFrom = "FROM LinkedTable.vwAdminProviderRoutes"
+        set tWhere = "where EMR is not null and sourceorganization in ("_..GetFacilities()_") "_
         "ORDER BY EMR Asc"
-        write ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+        set pQuery = tSelect_" "_tFrom_" "_tWhere
+        write ..SQLBuilder(pQuery)
 	}
 	catch ex {
 		write ex.Name
 	}
 	return $$$OK
+}
+
+ClassMethod GetRawContent(pId) As %String
+{
+	return ##class(LinkedProcedure.GetRawContent).GetRawContent(pId)
+}
+
+ClassMethod GeneratePDF(hl7) As %String
+{
+	return ##class(LinkedProcedure.GeneratePDF).GeneratePDF(hl7)
 }
 
 // Gets details from a specific search result as json
@@ -188,23 +276,39 @@ ClassMethod GetDetail(inData As %String) As %Status
 		set data = {}.%FromJSON(inData)
 		set sessionid = data.payload.sessionid
 		set routeid = data.payload.routeid
+		set controlid = data.payload.controlid
+		set orgid = data.payload.orgid
+		set deliveredmsgid = data.payload.messagebodyid
+		// Sanitation
+		set sessionid = ##class(GLHC.ResultsViewer.Helpers).SQLInjectionHandlerNumber(sessionid)
+		set routeid = ##class(GLHC.ResultsViewer.Helpers).SQLInjectionHandlerNumber(routeid)
+		set controlid = ##class(GLHC.ResultsViewer.Helpers).SQLInjectionHandlerNumber(controlid,"_-.")
+		set orgid = ##class(GLHC.ResultsViewer.Helpers).SQLInjectionHandlerNumber(orgid)
+		set deliveredmsgid = ##class(GLHC.ResultsViewer.Helpers).SQLInjectionHandlerNumber(deliveredmsgid)
 		
+		set user = $username
 		set details = {}
 
-		// SQL definitions -DeliveredMessageBodyID
-        set tSelect = "select *, %vid from (select SessionID, RouteID, Delivered_Config, Delivery_Status, DeliveryQueued, DeliveredMessageBodyID, ConnectionEnabled, ConnectionType, Port, IPAddress, ACKReceived, ACK "
-        set tFrom = "FROM SQLUser.vwAdminMessageDetailDelivery "
-        set tWhere = "WHERE sessionid = '"_sessionid_"' and routeid = '"_routeid_"') v where %vid between 1 and 1"
+		set tSelect = "select *, %vid from (select t.SessionID, t.RouteID, Delivered_Config, Delivery_Status, DeliveryQueued, DeliveredMessageBodyID, ConnectionEnabled, ConnectionType, Port, IPAddress, ACKReceived, ACK "
+		set tFrom = "FROM LinkedTable.vwAdminMessageDetailDelivered t inner join LinkedTable.logroutesviewer r on r.sessionid = t.sessionid "
+		set tWhere = "WHERE DeliveredMessageBodyID = '"_deliveredmsgid_"' and r.sourceorgid in ("_..GetFacilities(,"id")_")) v where %vid between 1 and 1"
+
+		//w tSelect_tFrom_tWhere
+		//return $$$OK
+
         // Store query for logging
 		set deliveryquery = tSelect_" "_tFrom_" "_tWhere
-		set Delivery = ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
-		
+		set Delivery = ##class(GLHC.ResultsViewer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
 		set tSelect = "select *, %vid from (select Original_Source, CommonMessageBodyID, OriginalMessageBodyID, Original_Status, Original_TimeProcessed, Common_Router, Common_Status, Common_TimeProcessed "
-        set tFrom = "FROM SQLUser.vwAdminMessageDetailPreDelivery "
-        set tWhere = "WHERE sessionid = '"_sessionid_"') v where %vid between 1 and 1"
+        set tFrom = "FROM LinkedTable.vwAdminMessageDetailCommon t inner join LinkedTable.logroutesviewer r on r.sessionid = t.sessionid "
+        set tWhere = "WHERE t.sessionid = '"_sessionid_"' and r.sourceorgid in ("_..GetFacilities(,"id")_")) v where %vid between 1 and 1"
+		
+		//w tSelect_tFrom_tWhere
+		//return $$$OK
+		
         // Store query for logging
         set predeliveryquery = tSelect_" "_tFrom_" "_tWhere
-		set PreDelivery = ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+		set PreDelivery = ##class(GLHC.ResultsViewer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
 		
 		// Audit detail formation		
 		// Define the object that will hold our json event details
@@ -220,15 +324,16 @@ ClassMethod GetDetail(inData As %String) As %Status
 		set eventDetails.deliveryquery = deliveryquery
 		set eventDetails.predeliveryquery = predeliveryquery
 		
-		do ##class(HIE.Web.GridServer.Helpers).AuditEvent("GetDetail",eventDetails.%ToJSON(),"User viewed data from a specific message, invoking SQL queries defined in Event Data")
+		do ##class(GLHC.ResultsViewer.Helpers).AuditEvent("GetDetail",eventDetails.%ToJSON(),"User viewed data from a specific message, invoking SQL queries defined in Event Data")
 		
 		// Continue forming data for user
 		try {
 			// Extracts the hl7 so that it isn't truncated
 			set mutation = {}.%FromJSON(PreDelivery)
-			set Common = ##class(EnsLib.HL7.Message).%OpenId(mutation.tRow.CommonMessageBodyID).RawContentGet()
+			 
+			set Common = ..GetRawContent(mutation.tRow.CommonMessageBodyID)
 			set mutation.tRow."Common_HL7" = Common
-			set Original = ##class(EnsLib.HL7.Message).%OpenId(mutation.tRow.OriginalMessageBodyID).RawContentGet()
+			set Original = ..GetRawContent(mutation.tRow.OriginalMessageBodyID)
 			set mutation.tRow."Original_HL7" = Original
 			
 			set PreDelivery = mutation.%ToJSON()
@@ -239,7 +344,7 @@ ClassMethod GetDetail(inData As %String) As %Status
 		}
 		try {
 			set mutation = {}.%FromJSON(Delivery)
-			set Delivered = ##class(EnsLib.HL7.Message).%OpenId(mutation.tRow.DeliveredMessageBodyID).RawContentGet()
+			set Delivered = ..GetRawContent(mutation.tRow.DeliveredMessageBodyID)
 			set mutation.tRow."Delivered_HL7" = Delivered
 			
 			set Delivery = mutation.%ToJSON()
@@ -256,20 +361,33 @@ ClassMethod GetDetail(inData As %String) As %Status
 	return $$$OK
 }
 
+// Gets list of providers for use in a drop down
+
 ClassMethod GetProviders(inData As %String) As %Status
 {
 	try {
 		set data = {}.%FromJSON(inData)
-		set user = $username
-		set destination = data.payload.destination
-		set destination = $REPLACE(destination,"'","''")
-		
-		// SQL definitions
-        set tSelect = "SELECT OrganizationName, Type, EMR, Contact, Phone, Email, NPI, LastName, FirstName "
-        set tFrom = "FROM SQLUser.vwAdminOrgInfo "
-        set tWhere = "WHERE username = '"_user_"' and OrganizationName = '"_destination_"'"
+		//set user = $username
+		set organizationid = data.payload.organizationid
+		set sourceorgid = data.payload.sourceorgid
+		// SQL injection sanitation
+		set optional = ".-()"
+		set sourceorgid = ##class(GLHC.ResultsViewer.Helpers).SQLInjectionHandlerValue(sourceorgid,optional) //$REPLACE(sourceorganization,"'","''")
+		set organizationid = ##class(GLHC.ResultsViewer.Helpers).SQLInjectionHandlerValue(organizationid,optional) //$REPLACE(organizationid,"'","''")
+        
+        set tSelect = "SELECT DISTINCT o.OrganizationName, o.Type, o3.OrganizationName as EMR, o.Contact, o.Phone, o.Email, p.ProvNPI as NPI, p.LastName, p.FirstName, p2.ProvID as Code "
+ 	 	set tFrom = "FROM LinkedTable.Organizations o LEFT JOIN LinkedTable.Organizations o3 on o.EMR = o3.id INNER JOIN LinkedTable.OrganizationProviderList pl on pl.Organizationid = o.id "_
+ 	 		"INNER JOIN LinkedTable.OrganizationProviderListProviders p on p.providerlistid = pl.id "_
+ 	 		"INNER JOIN LinkedTable.OrganizationProviderListProviders p2 on p.provNPI = p2.provNPI "_
+ 	 		"INNER JOIN LinkedTable.OrganizationProviderList pl2 on pl2.id = p2.providerlistid "_
+ 	 		"INNER JOIN LinkedTable.Organizations o2 on pl2.organizationid = o2.id "
+		set tWhere = "where o.id = "_organizationid_" and o2.id = '"_sourceorgid_"'"
+		//set tWhere = "where o.id = 98 and pl2.organizationid = "_organizationid
+
+        //w tSelect_tFrom_tWhere
 		//write tSelect_tFrom_tWhere
-		write ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+		set pQuery = tSelect_" "_tFrom_" "_tWhere
+		write ..SQLBuilder(pQuery)
 	}
 	catch ex {
 		write ex.Name
@@ -281,6 +399,7 @@ ClassMethod GetProviders(inData As %String) As %Status
 
 ClassMethod Foreach(pInData) As %String
 {
+	//write pInData.%ToJSON()
 	try {
 		// Instantiate the query string, it may be empty by design
 		set tFilterParam = ""
@@ -294,130 +413,130 @@ ClassMethod Foreach(pInData) As %String
 		set tFoundStatus = 0
 		// Loop through these values and add to our query depending on their contents
 		while tIter.%GetNext(.key, .value) {
-			if value '= "" {
-				// If this is the first occurance of a delivery status
-				if tFoundStatus = 0 {
-					if key = "DeliveryStatus" {
-						
-						// set trigger because we've hit the first result type
-						set tFoundStatus = 1
-						// Try to treat it as a dynamic object
-						try {
-							set tSubIter = value.%GetIterator()
-						}
-						// If it fails, then it's a single value and we make the string
-						catch(e) {
-							set tFilterParam = tFilterParam_" and "_key_"='"_value_"'"
-							// Skip the rest of the logic because we're done with this record
-							continue
-						}
-						// Init element tracking
-						set counter = 0
-						// Init size of dynamic object
-						set size = 0
-						// Loop to get the size of dynamic object
-						while tSubIter.%GetNext() {
-							set size = size + 1
-						}
-						// Get new iterator so that we can loop through object again
-						set tSubIter = value.%GetIterator()
-						while tSubIter.%GetNext(.subkey, .subvalue) {
-							if subkey '= "" {
-								// If this is the first field in the object
-								if counter = 0 {
-									set tFilterParam = tFilterParam_" and ("_key_"='"_subvalue_"'"
+			set tIterw = value.%GetIterator()
+			while tIterw.%GetNext(.key, .value) {
+				set tIters = value.%GetIterator()
+				while tIters.%GetNext(.key, .value) {
+					//write key_" "_value
+					if value '= "" {
+						// Sanitation
+						set key = ##class(GLHC.ResultsViewer.Helpers).SQLInjectionHandlerKey(key)
+						// If this is the first occurance of a delivery status
+						if tFoundStatus = 0 {
+							if key = "DeliveryStatus" {
+								// set trigger because we've hit the first result type
+								set tFoundStatus = 1
+								// Init element tracking
+								set counter = 0
+								// Init size of dynamic object
+								set size = 0
+								set tSubIter = value.%GetIterator()
+								// Loop to get the size of dynamic object
+								while tSubIter.%GetNext() {
+									set size = size + 1
 								}
-								// Otherwise we make 'or' logic in the string for subsquent fields
-								else {
-									set tFilterParam = tFilterParam_" or "_key_"='"_subvalue_"'"
+								// Get new iterator so that we can loop through object again
+								set tSubIter = value.%GetIterator()
+								while tSubIter.%GetNext(.subkey, .subvalue) {
+									if subkey '= "" {
+										set subvalue = ##class(GLHC.ResultsViewer.Helpers).SQLInjectionHandlerValue(subvalue,"-")
+										// If this is the first field in the object
+										if counter = 0 {
+											set tFilterParam = tFilterParam_" and ("_key_"='"_subvalue_"'"
+										}
+										// Otherwise we make 'or' logic in the string for subsquent fields
+										else {
+											set tFilterParam = tFilterParam_" or "_key_"='"_subvalue_"'"
+										}
+										// Increment counter so that we know future fields aren't the first occurance
+										set counter = counter + 1
+									}
 								}
-								// Increment counter so that we know future fields aren't the first occurance
-								set counter = counter + 1
+								// Close 'or' logic
+								set tFilterParam = tFilterParam_")"
 							}
 						}
-						// Close 'or' logic
-						set tFilterParam = tFilterParam_")" 	
-					}
-				}
-				// If this is the first occurance of a result type
-				if tFoundResult = 0 {
-					if key = "ResultType" {
-						// set trigger because we've hit the first result type
-						set tFoundResult = 1
-						// Try to treat it as a dynamic object
-						try {
-							set tSubIter = value.%GetIterator()
-						}
-						// If it fails, then it's a single value and we make the string
-						catch(e) {
-							set tFilterParam = tFilterParam_" and "_key_"='"_value_"'"
-							// Skip the rest of the logic because we're done with this record
-							continue
-						}
-						// Init element tracking
-						set counter = 0
-						// Init size of dynamic object
-						set size = 0
-						// Loop to get the size of dynamic object
-						while tSubIter.%GetNext() {
-							set size = size + 1
-						}
-						// Get new iterator so that we can loop through object again
-						set tSubIter = value.%GetIterator()
-						while tSubIter.%GetNext(.subkey, .subvalue) {
-							if subkey '= "" {
-								// If this is the first field in the object
-								if counter = 0 {
-									set tFilterParam = tFilterParam_" and ("_key_"='"_subvalue_"'"
+						// If this is the first occurance of a result type
+						if tFoundResult = 0 {
+							if key = "ResultType" {
+								// set trigger because we've hit the first result type
+								set tFoundResult = 1
+								set tSubIter = value.%GetIterator()
+								// Init element tracking
+								set counter = 0
+								// Init size of dynamic object
+								set size = 0
+								// Loop to get the size of dynamic object
+								while tSubIter.%GetNext() {
+									set size = size + 1
 								}
-								// Otherwise we make 'or' logic in the string for subsquent fields
-								else {
-									set tFilterParam = tFilterParam_" or "_key_"='"_subvalue_"'"
+								// Get new iterator so that we can loop through object again
+								set tSubIter = value.%GetIterator()
+								while tSubIter.%GetNext(.subkey, .subvalue) {
+									if subkey '= "" {
+										set subvalue = ##class(GLHC.ResultsViewer.Helpers).SQLInjectionHandlerValue(subvalue,"-")
+										// If this is the first field in the object
+										if counter = 0 {
+											set tFilterParam = tFilterParam_" and ("_key_"='"_subvalue_"'"
+										}
+										// Otherwise we make 'or' logic in the string for subsquent fields
+										else {
+											set tFilterParam = tFilterParam_" or "_key_"='"_subvalue_"'"
+										}
+										// Increment counter so that we know future fields aren't the first occurance
+										set counter = counter + 1
+									}
 								}
-								// Increment counter so that we know future fields aren't the first occurance
-								set counter = counter + 1
+								// Close 'or' logic
+								set tFilterParam = tFilterParam_")" 	
 							}
 						}
-						// Close 'or' logic
-						set tFilterParam = tFilterParam_")" 	
+						// Sanitation
+						set value = ##class(GLHC.ResultsViewer.Helpers).SQLInjectionHandlerValue(value,".-()")
+						// Removes single quotes from user input so that the query isn't messed up
+						set value = $REPLACE(value,"'","''")
+						// Date handling section
+						if key = "ProcessedDateTimeFrom" {
+							// set higher level var to the from date
+							set tFrom = value
+							continue
+						}
+						if key = "ProcessedDateTimeTo" {
+							// Combine from and to for a full sql string
+							set tFrom = $extract(tFrom,1,13)_":"_$extract(tFrom,14,15)
+							set value = $extract(value,1,13)_":"_$extract(value,14,15)
+							set tFilterParam = tFilterParam_" and l.CreateTS BETWEEN '"_tFrom_":00' and '"_value_":00'"
+							continue
+						}
+						if key = "DeliveredResults" {
+							if value = "Delivered" {
+								set tFilterParam = tFilterParam_" and RouteID IS NOT NULL"
+							}
+							else {
+								set tFilterParam = tFilterParam_" and RouteID IS NULL"
+							}
+							continue
+						}
+						// Handler to skip adding ghost DynamicArray object to string building
+						if key = "ResultType" {
+							continue
+						}
+						if key = "DeliveryStatus" {
+							continue
+						}
+						if key = "DestOrgID" {
+							set tFilterParam = tFilterParam_" and DestOrgID="_value
+							continue
+						}
+						// If the key isn't special, just use its key name and value to make a sql string
+						set tFilterParam = tFilterParam_" and "_key_"='"_value_"'"
 					}
 				}
-				// Removes single quotes from user input so that the query isn't messed up
-				set value = $REPLACE(value,"'","''")
-				// Date handling section
-				if key = "ProcessedDateTimeFrom" {
-					// set higher level var to the from date
-					set tFrom = value
-					continue
-				}
-				if key = "ProcessedDateTimeTo" {
-					// Combine from and to for a full sql string
-					set tFilterParam = tFilterParam_" and l.CreateTS BETWEEN '"_tFrom_"' and '"_value_"'"
-					continue
-				}
-				if key = "DeliveredResults" {
-					if value = "Delivered" {
-						set tFilterParam = tFilterParam_" and RouteID IS NOT NULL"
-					}
-					else {
-						set tFilterParam = tFilterParam_" and RouteID IS NULL"
-					}
-					continue
-				}
-				// Handler to skip adding ghost DynamicArray object to string building
-				if key = "ResultType" {
-					continue
-				}
-				if key = "DeliveryStatus" {
-					continue
-				}
-				// If the key isn't special, just use its key name and value to make a sql string
-				set tFilterParam = tFilterParam_" and upper("_key_")=upper('"_value_"')"
 			}
 		}
 	}
 	catch(e) {
-		write e.Name	
+		//write e	
 	}
 	// Pass the full sql clauses
 	return tFilterParam
@@ -440,30 +559,18 @@ ClassMethod GetSearchResult(inData As %String) As %Status
 			"l.PatientFirstName, l.PatientDOB, l.MRN, l.AccessionID, l.ResultStatus,  l.PatientClass, "_
 			"l.OBRLOINCDescription,l.DocumentType, COALESCE(l.OBRLOINCDescription,l.DocumentType) as Report,"_
 			" l.OBRUniversalServiceID,  l.SessionID, l.DelayEntry, l.DestinationStatus, l.SourceOrgName"_
-			" as Source, l.DestOrgName as Destination, u.username, l.providerid, l.providerrole, l.deliverystatus"
-		set tFrom = "FROM HIE_Data.LogRoutesProviders l inner join hie_data.organizationusers u on l.sourceorgid = u.organizationid"
+			" as Source, l.DestOrgName as Destination, l.providerid, l.providerrole, l.deliverystatus, l.DestOrgId, l.DeliveredMsgId"
 		
-		set tWhere = "where l.sourceorgid IN (SELECT OrganizationID From HIE_Data.OrganizationUsers Where Username = '"_user_"') and (l.routeid >= (select routeid from HIE_data.logroutesproviders where routeid is not null) or not exists "_
-			"(select l2.routeid from hie_data.logroutesproviders l2 where l2.messagebodyid = l.messagebodyid and l2.routeid "_
-			"is not null)) " _ ..Foreach(data.payload)_ " GROUP BY l.CreateTS, l.DestOrgName, l.AccessionID ORDER BY l.ID DESC"	
+		set tFrom = "FROM LinkedTable.LogRoutesViewer l"
 		
-		// deprecated query in case of fallback
-		/*
-		set ztSelect = "select top 1000 ProcessedDateTime, DeliveryStatus, SourceOID, Destination, ResultType, RouteID, MessageControlID, MessageDateTime," _
-		"PatientLastName, ProvFirstName, ProvLastName, ProviderID, ProviderRole, PatientFirstName, PatientDOB, MRN, AccessionID, ResultStatus," _
-		"PatientClass, OBRLOINCDescription, OBRUniversalServiceID, DocumentType, SessionID," _  
-		"DelayEntry, DestinationStatus, Report"
-		set ztFrom = "from sqluser.vwAdminProviderLog"
-		// This where clause is created by our custom foreach function. It iterates over our form object and builds the correct syntax
-		set ztWhere = "where username = '"_user_"' " _ ..Foreach(data.payload) _ " ORDER BY ProcessedDateTime DESC"
-		*/
+		set tWhere = "where l.sourceorgid in ("_..GetFacilities(,"id")_")"_ ..Foreach(data)_" ORDER BY l.ID DESC"
 
 		// Return json result of query
 		set query = tSelect_" "_tFrom_" "_tWhere
 		//write query
-
-		set result = ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
-		do ##class(HIE.Web.GridServer.Helpers).AuditEvent("GetSearchResult",query,"User searched for messages, invoking SQL queries and viewing special information defined in Event Data")
+		//return $$$OK
+		set x = ##class(GLHC.ResultsViewer.Helpers).AuditEvent("GetSearchResult",query,"User searched for messages, invoking SQL queries and viewing special information defined in Event Data")
+		set result = ##class(GLHC.ResultsViewer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
 		
 		// Custom format manipulations
 		set mutation = {}.%FromJSON(result)
@@ -471,7 +578,10 @@ ClassMethod GetSearchResult(inData As %String) As %Status
 		while iter.%GetNext(.key, .value) {
 			// Name formatting
 			set value.PatientFullName = value.PatientLastName_", "_value.PatientFirstName
-			set value.ProviderName = value.ProvLastName_", "_value.ProvFirstName_" "_value.ProviderID_" - "_value.ProviderRole
+			if value.ProvLastName '= "" {
+				set value.ProvLastName = value.ProvLastName_", "
+			}
+			set value.ProviderName = value.ProvLastName_value.ProvFirstName_" "_value.ProviderID_" - "_value.ProviderRole
 			
 			// Manual formatting from ill-formed dates
 			try {
@@ -495,21 +605,21 @@ ClassMethod GetSearchResult(inData As %String) As %Status
 ClassMethod GetRoutes(inData As %String) As %Status
 {
 	try {
-		set data = {}.%FromJSON(inData)
+		//set data = {}.%FromJSON(inData)
 		// Gets the logged in user
 		set user = $username
 		// SQL definitions
 		set tSelect = "select Active, Aggregate, CreateTS, Delay, EMR, InterestedProvider,MSH3,MSH4,MSH5,MSH6,OrganizationID,PV13Location,"_
-		"PatientClass,PreserveProviders,ProviderRole,ResultStatus,ResultType,SendTo,SourceOID,Transformations,OrganizationName,"_
-		"Username,sourceorganization"
-		set tFrom = "from sqluser.vwAdminRoutesProviders"
-		set tWhere = "where username = '"_user_"'"
+		"PatientClass,PreserveProviders,ProviderRole,ResultStatus,ResultType,SendTo,SourceOID,Transformations,OrganizationName,sourceorganization,sourceorgid"
+		set tFrom = "from LinkedTable.vwAdminProviderRoutes"
+		set tWhere = "where sourceorganization in ("_..GetFacilities()_")"
 		set query = tSelect_" "_tFrom_" "_tWhere
-		
+		w query
+		return $$$OK
 		// Return our json object result from the query 
-		set result = ##class(HIE.Web.GridServer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
+		set result = ##class(GLHC.ResultsViewer.Helpers).SQLBuilder(tSelect,tFrom,tWhere)
 		
-		do ##class(HIE.Web.GridServer.Helpers).AuditEvent("GetRoutes",query, "User searched for routes, invoking an SQL query defined in Event Data")
+		do ##class(GLHC.ResultsViewer.Helpers).AuditEvent("GetRoutes",query, "User searched for routes, invoking an SQL query defined in Event Data")
 		
 		write result
 	}
